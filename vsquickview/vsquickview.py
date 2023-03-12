@@ -36,9 +36,6 @@ import vapoursynth as vs
 from vapoursynth import core
 
 
-__version__ = "0.1.0"
-
-
 Clips = [None] * 10
 Names = [None] * 10
 Caches = [{ 1: {}, 2: {}, 3: {}, 4: {} }] * 10

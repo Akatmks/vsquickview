@@ -1,3 +1,27 @@
+// vsquickview
+// Copyright (c) Akatsumekusa and contributors
+
+/* Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
@@ -116,8 +140,8 @@ ApplicationWindow {
         property real start_y
 
         onPressed: (mouse) => {
-            if((mouse.button == Qt.LeftButton && space) ||
-               mouse.button == Qt.MiddleButton) {
+            if((mouse.button === Qt.LeftButton && space) ||
+               mouse.button === Qt.MiddleButton) {
                 pan = true
                 offset_before_start_x = image.anchors.horizontalCenterOffset
                 offset_before_start_y = image.anchors.verticalCenterOffset
@@ -125,11 +149,11 @@ ApplicationWindow {
                 start_y = mouseY
             }
             
-            else if(mouse.button == Qt.LeftButton) {
+            else if(mouse.button === Qt.LeftButton) {
                 backend.nextIndex()
             }
 
-            else if(mouse.button == Qt.RightButton) {
+            else if(mouse.button === Qt.RightButton) {
                 window.showLabelText = !window.showLabelText
             }
         }
@@ -140,8 +164,8 @@ ApplicationWindow {
             }
         }
         onReleased: (mouse) => {
-            if(pan && (mouse.button == Qt.LeftButton ||
-                       mouse.button == Qt.MiddleButton)) {
+            if(pan && (mouse.button === Qt.LeftButton ||
+                       mouse.button === Qt.MiddleButton)) {
                 pan = false
             }
         }
@@ -179,94 +203,94 @@ ApplicationWindow {
         }
 
         Keys.onPressed: (event) => {
-            if(event.key == Qt.Key_F11 || event.key == Qt.Key_F) {
-                if(window.visibility == Window.Windowed ||
-                   window.visibility == Window.Maximized) {
+            if(event.key === Qt.Key_F11 || event.key === Qt.Key_F) {
+                if(window.visibility === Window.Windowed ||
+                   window.visibility === Window.Maximized) {
                     previous_visibility = window.visibility
                     window.visibility = Window.FullScreen
                 }
-                else if(window.visibility == Window.FullScreen) {
+                else if(window.visibility === Window.FullScreen) {
                     window.visibility = previous_visibility
                 }
             }
 
-            else if(event.key == Qt.Key_Space) {
+            else if(event.key === Qt.Key_Space) {
                 space = true
             }
 
-            else if(event.key == Qt.Key_Right) {
+            else if(event.key === Qt.Key_Right) {
                 backend.nextFrame()
             }
-            else if(event.key == Qt.Key_Left) {
+            else if(event.key === Qt.Key_Left) {
                 backend.prevFrame()
             }
 
-            else if(event.key == Qt.Key_G) {
+            else if(event.key === Qt.Key_G) {
                 gotoFrame = 0
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_0) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_0) {
                 gotoFrame = gotoFrame * 10 + 0
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_1) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_1) {
                 gotoFrame = gotoFrame * 10 + 1
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_2) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_2) {
                 gotoFrame = gotoFrame * 10 + 2
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_3) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_3) {
                 gotoFrame = gotoFrame * 10 + 3
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_4) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_4) {
                 gotoFrame = gotoFrame * 10 + 4
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_5) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_5) {
                 gotoFrame = gotoFrame * 10 + 5
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_6) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_6) {
                 gotoFrame = gotoFrame * 10 + 6
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_7) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_7) {
                 gotoFrame = gotoFrame * 10 + 7
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_8) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_8) {
                 gotoFrame = gotoFrame * 10 + 8
             }
-            else if(gotoFrame != -1 && event.key == Qt.Key_9) {
+            else if(gotoFrame != -1 && event.key === Qt.Key_9) {
                 gotoFrame = gotoFrame * 10 + 9
             }
-            else if(event.key == Qt.Key_Return || event.key == Qt.Key_Enter) {
+            else if(event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 backend.switchFrame(gotoFrame)
                 gotoFrame = -1
             }
 
-            else if(gotoFrame == -1 && event.key == Qt.Key_0) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_0) {
                 backend.switchIndex(0)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_1) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_1) {
                 backend.switchIndex(1)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_2) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_2) {
                 backend.switchIndex(2)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_3) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_3) {
                 backend.switchIndex(3)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_4) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_4) {
                 backend.switchIndex(4)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_5) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_5) {
                 backend.switchIndex(5)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_6) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_6) {
                 backend.switchIndex(6)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_7) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_7) {
                 backend.switchIndex(7)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_8) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_8) {
                 backend.switchIndex(8)
             }
-            else if(gotoFrame == -1 && event.key == Qt.Key_9) {
+            else if(gotoFrame === -1 && event.key === Qt.Key_9) {
                 backend.switchIndex(9)
             }
 
@@ -276,7 +300,7 @@ ApplicationWindow {
         }
 
         Keys.onReleased: (event) => {
-            if(event.key == Qt.Key_Space) {
+            if(event.key === Qt.Key_Space) {
                 space = false
             }
         }

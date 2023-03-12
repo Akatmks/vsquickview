@@ -9,5 +9,5 @@ vsquickview is a single-frame VapourSynth preview script designed to be used tog
 import vsquickview
 
 vsquickview.view(0, clip, "Original")
-vsquickview.view(1, clip, "Processed")
+vsquickview.view(1, clip, "Compare")
 ```
