@@ -1,2 +1,2 @@
-PySide6
+PyQt5
 numpy
