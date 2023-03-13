@@ -5,6 +5,11 @@ vsquickview is a frame-by-frame VapourSynth preview script designed to be used t
 * Less waiting. vsquickview will run alongside Jupyter Notebook. Everytimes you make an adjustment, you can switch to the vsquickview window to see the updated result immediately.  
 * Easier comparing between two clips by simpling right clicking. Blind comparing is also possible.  
 
+*Thanks to*  
+
+* Setsutteo no ao for helping with VapourSynth magics.  
+* witchymary and others for helping with the UX.  
+
 ### Install vsquickview
 
 Install vsquickview from pip (Not yet available at the moment; give Akatsumekusa a second :P ):  
@@ -71,8 +76,3 @@ Other usages are listed below:
 * `F` or `F11`: Toggle fullscreen.  
 
 vsquickview will be closed when you terminate or restart the Jupyter Notebook section. If you close the vsquickview window by accident, you can reopen it by calling function `vsquickview.show()`.  
-
-### Thanks to
-
-* Setsutteo no ao for helping with VapourSynth magics.  
-* witchymary and others for helping with the UX.  
