@@ -1,9 +1,9 @@
-## vsquickview
+<h1 align="center">vsquickview</h1>
 
 vsquickview is a frame-by-frame VapourSynth preview script designed to be used together with Jupyter Notebook with these advantages:  
 
-– Less waiting. vsquickview will run alongside Jupyter Notebook. Everytimes you make an adjustment, you can switch to the vsquickview window to see the updated result immediately.  
-– Easier comparing between two clips by simpling right clicking. Blind comparing is also possible.  
+* Less waiting. vsquickview will run alongside Jupyter Notebook. Everytimes you make an adjustment, you can switch to the vsquickview window to see the updated result immediately.  
+* Easier comparing between two clips by simpling right clicking. Blind comparing is also possible.  
 
 ### Install vsquickview
 
@@ -61,7 +61,7 @@ You can cycle between clips using the right mouse button. If you have more than 
 
 Other usages are listed below:  
 
-* `Left Mouse Button` or `Middle Mouse Button` (Drag): pan the clip preview.  
+* `Left Mouse Button` or `Middle Mouse Button`: Pan the clip preview.  
 * `Scroll Wheel`: Zoom the preview at 100%, 200%, 300%, or 400%.  
 * `Alt`: Toggle the label at the bottom-left corner of the screen.  
 * `Right Mouse Button` or `Space`: Switch to the next available clip.  
