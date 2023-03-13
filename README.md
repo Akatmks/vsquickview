@@ -3,7 +3,7 @@
 vsquickview is a frame-by-frame VapourSynth preview script designed to be used together with Jupyter Notebook with these advantages:  
 
 * Less waiting. vsquickview will run alongside Jupyter Notebook. Everytimes you make an adjustment, you can switch to the vsquickview window to see the updated result immediately.  
-* Easier comparing between two clips by simpling right clicking. Blind comparing is also possible.  
+* Easier comparing between two clips with a right click. Blind comparing is also possible.  
 
 *Thanks to*  
 
