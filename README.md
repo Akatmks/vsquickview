@@ -12,10 +12,10 @@ vsquickview is a frame-by-frame VapourSynth preview script designed to be used t
 
 ### Install vsquickview
 
-Install vsquickview from pip (Not yet available at the moment; give Akatsumekusa a second :P ):  
+Install vsquickview from TestPyPI (will be uploaded to pip soon):  
 
 ```sh
-python3 -m pip install vsquickview
+python3 -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ vsquickview
 ```
 
 vsquickview also requires fmtc to function. Make sure you have fmtc installed.  
