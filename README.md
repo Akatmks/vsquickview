@@ -1,3 +1,5 @@
+<br />
+
 <h2 align="center">vsquickview</h2>
 
 vsquickview is a frame-by-frame VapourSynth preview script designed to be used together with Jupyter Notebook with these advantages:  
