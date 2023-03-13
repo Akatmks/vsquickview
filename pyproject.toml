@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vsquickview"
+description = "VapourSynth preview script"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["VapourSynth"]
+authors = [
+  { name = "Akatsumekusa", email = "Akatsumekusa@protonmail.com" },
+]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Multimedia :: Video"
+]
+dependencies = [
+  "PyQt5",
+  "numpy"
+]
+dynamic = ["version"]
+
+[project.urls]
+Documentation = "https://github.com/Akatmks/vsquickview"
+Issues = "https://github.com/Akatmks/vsquickview/issues"
+Source = "https://github.com/Akatmks/vsquickview"
+
+[tool.hatch.version]
+path = "vsquickview/__init__.py"
+
+[tool.hatch.build]
+include = [
+  "vsquickview/*"
+]

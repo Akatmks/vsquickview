@@ -15,7 +15,7 @@ vsquickview is a frame-by-frame VapourSynth preview script designed to be used t
 Install vsquickview from TestPyPI (will be uploaded to pip soon):  
 
 ```sh
-python3 -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ vsquickview
+python3 -m pip install vsquickview
 ```
 
 vsquickview also requires fmtc to function. Make sure you have fmtc installed.  
@@ -58,7 +58,7 @@ vsquickview.removeView(1)
 
 Now we have explained vsquickview's Python interface, we can now have a look at vsquickview window.  
 
-vsquickview should now display the first frame of the clip at index 0. Press `Alt` key and you will see a label on the bottom-left corner of the screen `Index 0: [Name of the clip] / Frame 0`.  
+vsquickview displays the first frame of the clip at index 0 on startup. Press `Alt` key and you will see a label on the bottom-left corner of the screen `Index 0: [Name of the clip] / Frame 0`.  
 
 You can switch to another frame using `G` key. Press `G` key and type in the frame number, then press `Enter` and a new frame will be displayed.  
 
