@@ -27,7 +27,7 @@ import itertools
 import os
 import numpy as np
 from pathlib import Path
-from PyQt5.QtCore import QObject, pyqtProperty, pyqtSignal, pyqtSlot, Qt
+from PyQt5.QtCore import QObject, pyqtProperty, pyqtSignal, pyqtSlot, Qt, QRunnable, QThreadPool
 from PyQt5.QtGui import QGuiApplication, QImage
 from PyQt5.QtQml import QQmlApplicationEngine
 from PyQt5.QtQuick import QQuickImageProvider
@@ -134,6 +134,42 @@ ColourBars = core.std.StackVertical([pattern_1, pattern_2, pattern_3, pattern_4]
 ColourBarsCaches = { 1: {}, 2: {}, 3: {}, 4: {} }
 
 
+def loadImage(clip, scale):
+    if scale != 1:
+        clip = core.fmtc.resample(clip, scale=scale, kernel="point")
+    if clip.format.bits_per_sample != 8:
+        clip = core.fmtc.bitdepth(clip, bits=8)
+
+    frame = clip.get_frame(0)
+    r = np.array(frame[0], dtype=np.uint8).reshape((clip.height, clip.width))
+    g = np.array(frame[1], dtype=np.uint8).reshape((clip.height, clip.width))
+    b = np.array(frame[2], dtype=np.uint8).reshape((clip.height, clip.width))
+    rgb = np.stack((r, g, b))
+    rgb = np.moveaxis(rgb, 0, -1)
+
+    return QImage(rgb.tobytes(), clip.width, clip.height, QImage.Format.Format_RGB888).copy()
+
+class CacheImage(QRunnable):
+    def __init__(self, clip, cache, frame):
+        super(CacheImage, self).__init__()
+
+        self.clip = clip
+        self.cache = cache
+        self.frame = frame
+
+    @pyqtSlot()
+    def run(self):
+        for scale in range(1, 5):
+            if self.frame not in self.cache[scale] and \
+               0 <= self.frame < self.clip.num_frames:
+                    self.cache[scale][self.frame] = loadImage(self.clip[self.frame], scale)
+
+CacheImageThreadPool = QThreadPool()
+
+if True:
+    CacheImageThreadPool.start(CacheImage(ColourBars, ColourBarsCaches, 0))
+
+
 class Backend(QObject):
     def __init__(self):
         QObject.__init__(self)
@@ -142,6 +178,8 @@ class Backend(QObject):
         self.frameChanged.connect(self.imageChanged)
         self.scaleChanged.connect(self.imageChanged)
         self.imageChanged.connect(self.updateName)
+
+        self.frameChanged.connect(self.cacheImage)
 
     _index = 0
     def index_(self):
@@ -256,6 +294,13 @@ class Backend(QObject):
             self.scale = 3
             return 3/4
 
+    @pyqtSlot()
+    def cacheImage(self):
+        for index in range(10):
+            if Clips[index]:
+                CacheImageThreadPool.start(CacheImage(Clips[index], Caches[index], backend.frame))
+
+
 class ImageProvider(QQuickImageProvider):
     def __init__(self):
         super(ImageProvider, self).__init__(QQuickImageProvider.ImageType.Image)
@@ -263,38 +308,14 @@ class ImageProvider(QQuickImageProvider):
     def requestImage(self, id, requestedSize):
         if Clips[backend.index] and 0 <= backend.frame < Clips[backend.index].num_frames:
             if backend.frame in Caches[backend.index][backend.scale]:
-                return Caches[backend.index][backend.scale][backend.frame], Caches[backend.index][backend.scale][backend.frame].size()
+                img = Caches[backend.index][backend.scale][backend.frame]
             else:
-                clip = Clips[backend.index][backend.frame]
+                img = loadImage(Clips[backend.index][backend.frame], backend.scale)
         else:
-            if ColourBarsCaches[backend.scale]:
-                return ColourBarsCaches[backend.scale], ColourBarsCaches[backend.scale].size()
+            if 0 in ColourBarsCaches[backend.scale]:
+                img = ColourBarsCaches[backend.scale][0]
             else:
-                clip = ColourBars
-
-        if backend.scale != 1:
-            clip = core.fmtc.resample(clip, scale=backend.scale, kernel="point")
-        if clip.format.bits_per_sample != 8:
-            clip = core.fmtc.bitdepth(clip, bits=8)
-
-        # clip = core.std.Expr(core.std.SplitPlanes(clip),
-        #                      "x 65536 * y 256 * z + +",
-        #                      format=core.query_video_format(vs.GRAY, vs.INTEGER, 32))
-        # frame = clip.get_frame(0)
-        # img = QImage(frame[0], frame.width, frame.height, QImage.Format.Format_RGB32).copy()
-
-        frame = clip.get_frame(0)
-        r = np.array(frame[0], dtype=np.uint8).reshape((clip.height, clip.width))
-        g = np.array(frame[1], dtype=np.uint8).reshape((clip.height, clip.width))
-        b = np.array(frame[2], dtype=np.uint8).reshape((clip.height, clip.width))
-        rgb = np.stack((r, g, b))
-        rgb = np.moveaxis(rgb, 0, -1)
-        img = QImage(rgb.tobytes(), clip.width, clip.height, QImage.Format.Format_RGB888).copy()
-
-        if Clips[backend.index] and 0 <= backend.frame < Clips[backend.index].num_frames:
-            Caches[backend.index][backend.scale][backend.frame] = img
-        else:
-            ColourBarsCaches[backend.scale] = img
+                img = loadImage(ColourBars[0], backend.scale)
 
         return img, img.size()
 
@@ -340,6 +361,8 @@ def view(index: int, clip, name: typing.Optional[str]=None):
 
     if backend.index == index:
         backend.imageChanged.emit()
+
+    backend.cacheImage()
 
 def removeView(index: int):
     Clips[index] = None

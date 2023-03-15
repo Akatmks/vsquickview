@@ -12,7 +12,7 @@ vsquickview is a frame-by-frame VapourSynth preview script designed to be used t
 
 ### Install vsquickview
 
-Install vsquickview from pip:  
+Install vsquickview from TestPyPI (will be uploaded to pip soon):  
 
 ```sh
 python3 -m pip install vsquickview
@@ -33,7 +33,7 @@ After this cell is executed, a fullscreen vsquickview window should be opened, s
 
 Now we can add clips to the vsquickview using function `vsquickview.view()`:  
 ```py
-vsquickview.view(0, clip1, "Original")
+vsquickview.view(0, clip1, "Source")
 vsquickview.view(1, clip2, "Compare")
 ```
 
@@ -48,7 +48,7 @@ view(index: int, clip, name: typing.Optional[str]=None)
 
 Clip on an index can be updated using the same `vsquickview.view()` function:  
 ```py
-vsquickview.view(1, clip_new, "Compare")
+vsquickview.view(1, clip_new, "New Compare")
 ```
 
 To remove a clip with a specific index:  
