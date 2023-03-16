@@ -159,10 +159,12 @@ class CacheImage(QRunnable):
 
     @pyqtSlot()
     def run(self):
-        for scale in range(1, 5):
-            if self.frame not in self.cache[scale] and \
-               0 <= self.frame < self.clip.num_frames:
-                    self.cache[scale][self.frame] = loadImage(self.clip[self.frame], scale)
+        if 0 <= self.frame < self.clip.num_frames:
+            if self.frame not in self.cache[1]:
+                self.cache[1][self.frame] = loadImage(self.clip[self.frame], 1)
+            for scale in range(2, 5):
+                if self.frame not in self.cache[scale]:
+                    self.cache[scale][self.frame] = self.cache[1][self.frame].scaledToWidth(self.cache[1][self.frame].width() * scale, mode=Qt.FastTransformation)
 
 CacheImageThreadPool = QThreadPool()
 
@@ -197,9 +199,23 @@ class Backend(QObject):
     def setFrame(self, frame):
         if self._frame != frame:
             self._frame = frame
+            self.updateFrameHistory(frame)
+
             self.frameChanged.emit()
     frameChanged = pyqtSignal()
     frame = pyqtProperty(int, frame_, setFrame, notify=frameChanged)
+
+    frame_history = { 0: True }
+    def updateFrameHistory(self, frame):
+        if frame in self.frame_history:
+            del self.frame_history[frame]
+        self.frame_history[frame] = True
+
+        if len(self.frame_history) > 3:
+            frame = list(self.frame_history)[0]
+            del self.frame_history[frame]
+            for scale in range(2, 5):
+                del Caches[self.index][scale][frame]
 
     _scale = 1
     def scale_(self):
@@ -309,6 +325,9 @@ class ImageProvider(QQuickImageProvider):
         if Clips[backend.index] and 0 <= backend.frame < Clips[backend.index].num_frames:
             if backend.frame in Caches[backend.index][backend.scale]:
                 img = Caches[backend.index][backend.scale][backend.frame]
+            elif backend.frame in Caches[backend.index][1]:
+                img = Caches[backend.index][1][backend.frame]
+                img = img.scaledToWidth(img.width() * backend.scale, mode=Qt.FastTransformation)
             else:
                 img = loadImage(Clips[backend.index][backend.frame], backend.scale)
         else:
