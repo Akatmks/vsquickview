@@ -66,7 +66,12 @@ ApplicationWindow {
         anchors.horizontalCenterOffset: 0
         anchors.verticalCenterOffset: 0
 
+        width: sourceSize.width * scale
+        height: sourceSize.height * scale
         source: "image://backend/" + Math.random().toExponential()
+        property real scale: 1
+        smooth: false
+        cache: false
     }
 
     property bool showLabelText: false
@@ -173,7 +178,6 @@ ApplicationWindow {
                     image.anchors.horizontalCenterOffset = image.anchors.horizontalCenterOffset >= 0 ? -(window.width - image.width) / 2 : (window.width - image.width) / 2
                     image.anchors.verticalCenterOffset = image.anchors.verticalCenterOffset >= 0 ? -(window.height - image.height) / 2 : (window.height - image.height) / 2
                 }
-                
             }
         }
         onReleased: (mouse) => {
@@ -187,19 +191,23 @@ ApplicationWindow {
             let image_y = image.y
             let image_width = image.width
             let image_height = image.height
-            let scaling = 1.0
+            let scale = image.scale
 
             if(wheel.angleDelta.y > 0) {
-                scaling = backend.moreScale()
+                if(scale < 12) {
+                    image.scale = scale + 1
+                }
             }
             else if(wheel.angleDelta.y < 0) {
-                scaling = backend.lessScale()
+                if(scale > 1) {
+                    image.scale = scale - 1
+                }
             }
 
             if(mouseX > image_x && mouseX < image_x + image_width &&
                mouseY > image_y && mouseY < image_y + image_height) {
-                image.anchors.horizontalCenterOffset = image.anchors.horizontalCenterOffset - (mouseX - image_x - image_width/2) * (scaling - 1)
-                image.anchors.verticalCenterOffset = image.anchors.verticalCenterOffset - (mouseY - image_y - image_height/2) * (scaling - 1)
+                image.anchors.horizontalCenterOffset = image.anchors.horizontalCenterOffset - (mouseX - image_x - image_width/2) * (image.scale / scale - 1)
+                image.anchors.verticalCenterOffset = image.anchors.verticalCenterOffset - (mouseY - image_y - image_height/2) * (image.scale / scale - 1)
             }
         }
 

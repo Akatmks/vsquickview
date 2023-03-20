@@ -25,4 +25,4 @@
 
 from .vsquickview import view, removeView, show, hide
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
