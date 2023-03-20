@@ -23,10 +23,11 @@
 # SOFTWARE.
 # ---------------------------------------------------------------------
 
-import __main__
-if __main__.__name__ != "__vapoursynth__":
-    from .vsquickview import view, removeView, show, hide
-else:
-    from .fakevsquickview import view, removeView, show, hide
-
-__version__ = "0.1.7"
+def view(*_, **__):
+    pass
+def removeView(*_, **__):
+    pass
+def show(*_, **__):
+    pass
+def hide(*_, **__):
+    pass

@@ -300,7 +300,7 @@ def view(index: int, clip, name: typing.Optional[str]=None):
 def removeView(index: int):
     Clips[index] = None
     Names[index] = None
-    Caches[index] = { 1: {}, 2: {}, 3: {}, 4: {} }
+    cancelAllAndClearCache(index)
 
     if backend.index == index:
         backend.indexChanged.emit()
