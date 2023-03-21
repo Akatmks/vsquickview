@@ -49,7 +49,7 @@ ramp_frame = ramp.get_frame(0).copy()
 for plane in range(3):
     for x in range(ramp.width):
         for y in range(ramp.height):
-            ramp_frame[plane][y, x] = round((1019 - 4) / (1 + 498 + 516) * x) + 4
+            ramp_frame[plane][y, x] = round(ramp.width / (1 + 498 + 516) * x) + 4
 ramp = core.std.ModifyFrame(ramp, ramp, lambda n, f: ramp_frame)
 pattern_3 = core.std.StackHorizontal([core.std.BlankClip(None, 240,  90, color=[940, 940,  64], format=vs.RGB30, length=1, fpsnum=24000, fpsden=1001),
                                       core.std.BlankClip(None, 221,  90, color=[  4,   4,   4], format=vs.RGB30, length=1, fpsnum=24000, fpsden=1001),

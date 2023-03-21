@@ -42,6 +42,9 @@ Clips = [None] * 10
 Names = [None] * 10
 
 def loadImage(clip):
+    if clip.format.bits_per_sample != 8:
+        clip = core.fmtc.bitdepth(clip, bits=8)
+
     frame = clip.get_frame(0)
     r = np.array(frame[0], dtype=np.uint8).reshape((clip.height, clip.width))
     g = np.array(frame[1], dtype=np.uint8).reshape((clip.height, clip.width))
