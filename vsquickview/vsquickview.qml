@@ -154,8 +154,14 @@ ApplicationWindow {
         property real offset_before_start_y
         property real start_x
         property real start_y
+        
+        property bool altPressed: false
 
         onPressed: (mouse) => {
+            if(true) {
+                altPressed = false
+            }
+
             if(mouse.button === Qt.LeftButton || mouse.button === Qt.MiddleButton) {
                 pan = true
                 offset_before_start_x = image.anchors.horizontalCenterOffset
@@ -165,7 +171,12 @@ ApplicationWindow {
             }
 
             else if(mouse.button === Qt.RightButton) {
-                backend.nextIndex()
+                if(!(mouse.modifiers & Qt.ShiftModifier)) {
+                    backend.cycleIndex()
+                }
+                else {
+                    backend.cycleIndexBackwards()
+                }
             }
         }
         onPositionChanged: (mouse) => {
@@ -187,6 +198,10 @@ ApplicationWindow {
         }
 
         onWheel: (wheel) => {
+            if(true) {
+                altPressed = false
+            }
+
             let image_x = image.x
             let image_y = image.y
             let image_width = image.width
@@ -221,10 +236,9 @@ ApplicationWindow {
                 extraLabelText = ""
             }
         }
-        property bool altPressed: false
 
         Keys.onPressed: (event) => {
-            if((event.modifiers & Qt.AltModifier) && event.key !== Qt.Key_Alt) {
+            if(true) {
                 altPressed = false
             }
 
@@ -240,10 +254,24 @@ ApplicationWindow {
             }
 
             else if(event.key === Qt.Key_Space) {
+                if(!(event.modifiers & Qt.ShiftModifier)) {
+                    backend.cycleIndex()
+                }
+                else {
+                    backend.cycleIndexBackwards()
+                }
+            }
+            else if(event.key === Qt.Key_Up) {
                 backend.nextIndex()
             }
+            else if(event.key === Qt.Key_Down) {
+                backend.prevIndex()
+            }
+
             else if(event.key === Qt.Key_Alt) {
-                altPressed = true
+                if(event.modifiers === Qt.AltModifier) {
+                    altPressed = true
+                }
             }
 
             else if(event.key === Qt.Key_Right) {

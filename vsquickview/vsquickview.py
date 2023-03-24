@@ -197,13 +197,25 @@ class Backend(QObject):
 
     @pyqtSlot()
     def prevIndex(self):
-        for i in itertools.chain(range(self.index - 1, -1, -1), range(10, self.index, -1)):
+        for i in range(self.index - 1, -1, -1):
             if Clips[i] and 0 <= self.frame < Clips[i].num_frames:
                 self.index = i
                 return
     @pyqtSlot()
     def nextIndex(self):
+        for i in range(self.index + 1, 10):
+            if Clips[i] and 0 <= self.frame < Clips[i].num_frames:
+                self.index = i
+                return
+    @pyqtSlot()
+    def cycleIndex(self):
         for i in itertools.chain(range(self.index + 1, 10), range(self.index)):
+            if Clips[i] and 0 <= self.frame < Clips[i].num_frames:
+                self.index = i
+                return
+    @pyqtSlot()
+    def cycleIndexBackwards(self):
+        for i in itertools.chain(range(self.index - 1, -1, -1), range(10 - 1, self.index, -1)):
             if Clips[i] and 0 <= self.frame < Clips[i].num_frames:
                 self.index = i
                 return
