@@ -322,6 +322,9 @@ def removeView(index: int):
     else:
         backend.cacheUpdateTrigger.emit()
 
+def setFrame(frame: int):
+    backend.frame = frame
+
 def show():
     window_control.show.emit()
 

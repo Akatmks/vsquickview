@@ -27,6 +27,8 @@ def view(*_, **__):
     pass
 def removeView(*_, **__):
     pass
+def setFrame(*_, **__):
+    pass
 def show(*_, **__):
     pass
 def hide(*_, **__):
