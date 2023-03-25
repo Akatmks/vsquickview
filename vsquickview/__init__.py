@@ -25,8 +25,8 @@
 
 import __main__
 if __main__.__name__ != "__vapoursynth__":
-    from .vsquickview import view, removeView, setFrame, show, hide
+    from .vsquickview import view, removeView, setFrame, setIndex, show, hide
 else:
-    from .fakevsquickview import view, removeView, setFrame, show, hide
+    from .fakevsquickview import view, removeView, setFrame, setIndex, show, hide
 
 __version__ = "0.1.10"

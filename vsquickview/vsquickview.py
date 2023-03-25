@@ -324,6 +324,9 @@ def removeView(index: int):
 
 def setFrame(frame: int):
     backend.frame = frame
+def setIndex(index: int):
+    assert(0 <= index < 10)
+    backend.index = index
 
 def show():
     window_control.show.emit()
