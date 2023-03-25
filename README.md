@@ -33,9 +33,7 @@ import vsquickview as vsqv
 ```
 `%gui qt5` is a magic command to let Jupyter Notebook integrates with the Qt event loop. Please make sure to call it before importing vsquickview.  
 
-After this cell is executed, a fullscreen vsquickview window should be opened, showing an ARIB STD-B66 colour bar.
-
-We will be looking at the GUI in the next section, but before that, let's see how can we add clips to vsquickview:  
+After this cell is executed, a fullscreen vsquickview window should be opened, showing an ARIB STD-B66 colour bar. We will be looking at the GUI in the next section, but before that, let's see how we can add clips to vsquickview:  
 
 ```py
 vsqv.View(src16, 0, "Source")
@@ -67,7 +65,7 @@ vsqv.View(compare16, index=1, name="Compare")
 vsqv.RemoveView(None, index=1)
 ```
 
-Here is a list of functions in vsquickview:  
+Here is a short list of functions and their definitions in vsquickview:  
 ```py
 View(clip: vs.VideoNode, index: int, name: Optional[str]=None)
 RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None)
