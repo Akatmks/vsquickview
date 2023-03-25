@@ -23,15 +23,15 @@
 # SOFTWARE.
 # ---------------------------------------------------------------------
 
-def view(*_, **__):
+def View(*_, **__):
     pass
-def removeView(*_, **__):
+def RemoveView(*_, **__):
     pass
-def setFrame(*_, **__):
+def SetFrame(*_, **__):
     pass
-def setIndex(*_, **__):
+def SetIndex(*_, **__):
     pass
-def show(*_, **__):
+def Show(*_, **__):
     pass
-def hide(*_, **__):
+def Hide(*_, **__):
     pass

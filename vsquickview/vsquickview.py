@@ -32,6 +32,7 @@ from PyQt5.QtGui import QGuiApplication, QImage
 from PyQt5.QtQml import QQmlApplicationEngine
 from PyQt5.QtQuick import QQuickImageProvider
 import typing
+from typing import Optional, Union
 import vapoursynth as vs
 from vapoursynth import core
 
@@ -295,7 +296,10 @@ qml_file = Path(__file__).with_name("vsquickview.qml").as_posix()
 engine.load(qml_file)
 
 
-def view(index: int, clip, name: typing.Optional[str]=None):
+def View(clip: vs.VideoNode, index: int, name: Optional[str]=None):
+    assert(type(index) == int and 0 <= index < 10)
+    assert(isinstance(name, typing.get_args(Optional[str])))
+
     clip = clip[:]
     if clip.format.color_family == vs.YUV:
         clip = core.fmtc.resample(clip, css="444", kernel="spline64")
@@ -312,7 +316,11 @@ def view(index: int, clip, name: typing.Optional[str]=None):
     else:
         backend.cacheUpdateTrigger.emit()
 
-def removeView(index: int):
+def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None):
+    if not index:
+        index = clip
+    assert(type(index) == int and 0 <= index < 10)
+
     Clips[index] = None
     Names[index] = None
     cancelAllAndClearCache(index)
@@ -322,14 +330,21 @@ def removeView(index: int):
     else:
         backend.cacheUpdateTrigger.emit()
 
-def setFrame(frame: int):
-    backend.frame = frame
-def setIndex(index: int):
-    assert(0 <= index < 10)
-    backend.index = index
+def SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None):
+    if not frame:
+        frame = clip
+    assert(type(frame) == int)
 
-def show():
+    backend.switchFrame(frame)
+def SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None):
+    if not index:
+        index = clip
+    assert(type(index) == int and 0 <= index < 10)
+
+    backend.switchIndex(index)
+
+def Show(clip: Optional[vs.VideoNode]=None):
     window_control.show.emit()
 
-def hide():
+def Hide(clip: Optional[vs.VideoNode]=None):
     window_control.hide.emit()
