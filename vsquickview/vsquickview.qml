@@ -275,10 +275,20 @@ ApplicationWindow {
             }
 
             else if(event.key === Qt.Key_Right) {
-                backend.nextFrame()
+                if(event.modifiers === Qt.ShiftModifier) {
+                    backend.nextPreviewGroupFrame()
+                }
+                else {
+                    backend.nextFrame()
+                }
             }
             else if(event.key === Qt.Key_Left) {
-                backend.prevFrame()
+                if(event.modifiers === Qt.ShiftModifier) {
+                    backend.prevPreviewGroupFrame()
+                }
+                else {
+                    backend.prevFrame()
+                }
             }
 
             else if(event.key === Qt.Key_G) {

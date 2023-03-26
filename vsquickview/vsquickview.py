@@ -23,6 +23,7 @@
 # SOFTWARE.
 # ---------------------------------------------------------------------
 
+import bisect
 import itertools
 import os
 import numpy as np
@@ -178,6 +179,8 @@ class Backend(QObject):
     frameChanged = pyqtSignal()
     frame = pyqtProperty(int, frame_, setFrame, notify=frameChanged)
 
+    preview_group = []
+
     _name = ""
     def name_(self):
         return self._name
@@ -234,6 +237,12 @@ class Backend(QObject):
         else:
             self.frame = self.frame - 1
     @pyqtSlot()
+    def prevPreviewGroupFrame(self):
+        if self.preview_group:
+            self.frame = self.preview_group[max(bisect.bisect_left(self.preview_group, self.frame - 1) - 1, 0)]
+        else:
+            self.prevFrame()
+    @pyqtSlot()
     def nextFrame(self):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
             if self.frame < Clips[self.index].num_frames - 1:
@@ -242,6 +251,12 @@ class Backend(QObject):
                 self.frame = Clips[self.index].num_frames - 1
         else:
             self.frame = self.frame + 1
+    @pyqtSlot()
+    def nextPreviewGroupFrame(self):
+        if self.preview_group:
+            self.frame = self.preview_group[bisect.bisect_left(self.preview_group, self.frame + 1)]
+        else:
+            self.nextFrame()
     @pyqtSlot(int)
     def switchFrame(self, frame):
         self.frame = frame
@@ -342,6 +357,17 @@ def SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=Non
     assert(type(index) == int and 0 <= index < 10)
 
     backend.switchIndex(index)
+def SetPreviewGroup(clip: Union[vs.VideoNode, int, None]=None, group: Optional[list]=None):
+    if not group:
+        group = clip
+    assert(type(group) == list and all([type(item) == int for item in group]))
+
+    group = list(set(group))
+    group.sort()
+
+    backend.preview_group = group
+def ClearPreviewGroup(clip: Union[vs.VideoNode, int, None]=None):
+    backend.preview_group = []
 
 def Show(clip: Optional[vs.VideoNode]=None):
     window_control.show.emit()

@@ -31,6 +31,10 @@ def SetFrame(*_, **__):
     pass
 def SetIndex(*_, **__):
     pass
+def SetPreviewGroup(*_, **__):
+    pass
+def ClearPreviewGroup(*_, **__):
+    pass
 def Show(*_, **__):
     pass
 def Hide(*_, **__):
