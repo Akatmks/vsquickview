@@ -10,6 +10,10 @@ vsquickview is a frame-by-frame VapourSynth preview script designed to be used t
 * Setsugen no ao for helping with VapourSynth magics.  
 * witchymary and others for helping with the UX.  
 
+**Note:**  
+
+This project has received an surprising amount of publicity recently. Please note that vsquickview is still in rapid development and its functions may subject to change. If there were any changes that would break existing function, we will indicate it by increasing the [MINOR](https://semver.org/#summary) version instead of PATCH. Until version 1.0.0 is released, if you see the MINOR version changes, please remember to revisit this README page to confirm that your existing scripts will work.  
+
 ### Install vsquickview
 
 Install vsquickview from pip:  
