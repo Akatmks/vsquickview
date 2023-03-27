@@ -29,4 +29,4 @@ if not __main__.__name__ == "__vapoursynth__":
 else:
     from .fakevsquickview import View, RemoveView, SetFrame, SetIndex, SetPreviewGroup, ClearPreviewGroup, Show, Hide
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"

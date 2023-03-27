@@ -278,6 +278,9 @@ ApplicationWindow {
                 if(event.modifiers === Qt.ShiftModifier) {
                     backend.nextPreviewGroupFrame()
                 }
+                else if(event.modifiers === Qt.ControlModifier) {
+                    backend.nextTwelveFrames()
+                }
                 else {
                     backend.nextFrame()
                 }
@@ -285,6 +288,9 @@ ApplicationWindow {
             else if(event.key === Qt.Key_Left) {
                 if(event.modifiers === Qt.ShiftModifier) {
                     backend.prevPreviewGroupFrame()
+                }
+                else if(event.modifiers === Qt.ControlModifier) {
+                    backend.prevTwelveFrames()
                 }
                 else {
                     backend.prevFrame()

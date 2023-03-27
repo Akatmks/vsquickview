@@ -96,6 +96,7 @@ Other usages are listed below:
 * `0`, `1`, `2` … `9`: Switch to the clip at the specific index.  
 * `G`: Press `G` key and type the frame number followed by `Enter` key to go to a specific frame.  
 * `Left` Key or `Right` Key: Go to the previous or the next frame.  
+* `Ctrl` and `Left` Key or `Right` Key: Jump 12 frames backwards or forwards.  
 * `Up` Key or `Down` Key: Go to the next or previous clip, but not cycling the clips.  
 * `F` or `F11`: Toggle fullscreen.  
 

@@ -87,6 +87,11 @@ def getImage(index, frame):
 
     return img
 
+def cancelPreviousWorks(index):
+    CachesThreadPoolLocks[index].lock()
+    CachesThreadPools[index].clear()
+    CachesThreadPoolLocks[index].unlock()
+
 class CacheFrames(QRunnable):
     def __init__(self, index, frame, renew_index):
         super(CacheFrames, self).__init__()
@@ -152,10 +157,8 @@ class Backend(QObject):
 
         self.indexChanged.connect(self.updateName)
 
-        self.imageChanged.connect(self.cacheFrames)
-        self.imageChanged.connect(self.freeOldCaches)
-        self.cacheUpdateTrigger.connect(self.cacheFrames)
-        self.cacheUpdateTrigger.connect(self.freeOldCaches)
+        self.imageChanged.connect(self.manageCache)
+        self.cacheUpdateTrigger.connect(self.manageCache)
 
     cacheUpdateTrigger = pyqtSignal()
 
@@ -232,10 +235,19 @@ class Backend(QObject):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
             if self.frame > 0:
                 self.frame = self.frame - 1
-            elif self.frame < 0:
+            else:
                 self.frame = 0
         else:
             self.frame = self.frame - 1
+    @pyqtSlot()
+    def prevTwelveFrames(self):
+        if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
+            if self.frame >= 12:
+                self.frame = self.frame - 12
+            else:
+                self.frame = 0
+        else:
+            self.frame = self.frame - 12
     @pyqtSlot()
     def prevPreviewGroupFrame(self):
         if self.preview_group:
@@ -247,10 +259,19 @@ class Backend(QObject):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
             if self.frame < Clips[self.index].num_frames - 1:
                 self.frame = self.frame + 1
-            elif self.frame > Clips[self.index].num_frames - 1:
+            else:
                 self.frame = Clips[self.index].num_frames - 1
         else:
             self.frame = self.frame + 1
+    @pyqtSlot()
+    def nextTwelveFrames(self):
+        if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
+            if self.frame < Clips[self.index].num_frames - 12:
+                self.frame = self.frame + 12
+            else:
+                self.frame = Clips[self.index].num_frames - 1
+        else:
+            self.frame = self.frame + 12
     @pyqtSlot()
     def nextPreviewGroupFrame(self):
         if self.preview_group:
@@ -262,16 +283,25 @@ class Backend(QObject):
         self.frame = frame
 
     @pyqtSlot()
-    def cacheFrames(self):
+    def manageCache(self):
+        cancelPreviousWorks(self.index)
+
         cacheFrames(self.index, self.frame, True)
         for index in range(10):
             cacheFrames(index, self.frame, False)
-        for frame in [self.frame + 1, self.frame - 1, self.frame + 2, self.frame - 2]:
-            cacheFrames(self.index, frame, False)
+        if self.preview_group:
+            for frame in [self.preview_group[max(bisect.bisect_left(self.preview_group, self.frame - 1) - 1, 0)],
+                          self.preview_group[bisect.bisect_left(self.preview_group, self.frame + 1)],
+                          self.frame + 1,
+                          self.frame - 1]:
+                cacheFrames(self.index, frame, False)
+        else:
+            for frame in [self.frame + 1, self.frame - 1, self.frame + 2, self.frame - 2]:
+                cacheFrames(self.index, frame, False)
+        cacheFrames(self.index, self.frame, True)
 
-    @pyqtSlot()
-    def freeOldCaches(self):
         freeOldCaches(self.index)
+        
 
 class ImageProvider(QQuickImageProvider):
     def __init__(self):
@@ -366,8 +396,12 @@ def SetPreviewGroup(clip: Union[vs.VideoNode, int, None]=None, group: Optional[l
     group.sort()
 
     backend.preview_group = group
+
+    backend.cacheUpdateTrigger.emit()
 def ClearPreviewGroup(clip: Optional[vs.VideoNode]=None):
     backend.preview_group = []
+    
+    backend.cacheUpdateTrigger.emit()
 
 def Show(clip: Optional[vs.VideoNode]=None):
     window_control.show.emit()
