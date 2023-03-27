@@ -317,7 +317,7 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None):
 
     clip = clip[:]
     if clip.format.color_family == vs.YUV:
-        clip = core.fmtc.resample(clip, css="444", kernel="spline64")
+        clip = core.fmtc.resample(clip, css="444", kernel="spline36")
         clip = core.fmtc.matrix(clip, mat="709", col_fam=vs.RGB)
     if clip.format.bits_per_sample != 8:
         clip = core.fmtc.bitdepth(clip, bits=8)
@@ -332,7 +332,7 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None):
         backend.cacheUpdateTrigger.emit()
 
 def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None):
-    if not index:
+    if index == None:
         index = clip
     assert(type(index) == int and 0 <= index < 10)
 
@@ -346,19 +346,19 @@ def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=N
         backend.cacheUpdateTrigger.emit()
 
 def SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None):
-    if not frame:
+    if frame == None:
         frame = clip
     assert(type(frame) == int)
 
     backend.switchFrame(frame)
 def SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None):
-    if not index:
+    if index == None:
         index = clip
     assert(type(index) == int and 0 <= index < 10)
 
     backend.switchIndex(index)
 def SetPreviewGroup(clip: Union[vs.VideoNode, int, None]=None, group: Optional[list]=None):
-    if not group:
+    if group == None:
         group = clip
     assert(type(group) == list and all([type(item) == int for item in group]))
 
@@ -366,7 +366,7 @@ def SetPreviewGroup(clip: Union[vs.VideoNode, int, None]=None, group: Optional[l
     group.sort()
 
     backend.preview_group = group
-def ClearPreviewGroup(clip: Union[vs.VideoNode, int, None]=None):
+def ClearPreviewGroup(clip: Optional[vs.VideoNode]=None):
     backend.preview_group = []
 
 def Show(clip: Optional[vs.VideoNode]=None):
