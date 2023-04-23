@@ -81,7 +81,7 @@ ApplicationWindow {
             label.text = extraLabelText
         }
         else if(showLabelText) {
-            label.text = "Index " + backend.index.toString() + (backend.name ? ": " + backend.name : "") + " / Frame " + backend.frame.toString()
+            label.text = "Index " + backend.index.toString() + (backend.name ? ": " + backend.name : "") + " / Frame " + backend.frame.toString() + (backend.frameInPreviewGroup() ? " (Preview Group)" : "")
         }
         else {
             label.text = ""
@@ -111,6 +111,12 @@ ApplicationWindow {
     Connections {
         target: backend
         function onNameChanged() {
+            updateLabelText()
+        }
+    }
+    Connections {
+        target: backend
+        function onPreviewGroupChanged() {
             updateLabelText()
         }
     }
@@ -418,6 +424,10 @@ ApplicationWindow {
             }
             else if(event.key === Qt.Key_9) {
                 backend.switchIndex(9)
+            }
+
+            else if(event.key === Qt.Key_R) {
+                backend.toggleFrameInPreviewGroup()
             }
 
             else {

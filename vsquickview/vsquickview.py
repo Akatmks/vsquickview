@@ -282,6 +282,19 @@ class Backend(QObject):
     def switchFrame(self, frame):
         self.frame = frame
 
+    previewGroupChanged = pyqtSignal()
+    @pyqtSlot(result=bool)
+    def frameInPreviewGroup(self):
+        return self.frame in self.preview_group
+    @pyqtSlot()
+    def toggleFrameInPreviewGroup(self):
+        if self.frame in self.preview_group:
+            self.preview_group.remove(self.frame)
+        else:
+            self.preview_group.append(self.frame)
+            self.preview_group.sort()
+        self.previewGroupChanged.emit()
+
     @pyqtSlot()
     def manageCache(self):
         cancelPreviousWorks(self.index)
@@ -390,21 +403,24 @@ def SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=Non
 def SetPreviewGroup(clip: Union[vs.VideoNode, int, None]=None, group: Optional[list]=None):
     if group == None:
         group = clip
-    assert(type(group) == list and all([type(item) == int for item in group]))
+    assert(type(group) == list and all([type(item) == int and item >= 0 for item in group]))
 
     group = list(set(group))
     group.sort()
 
     backend.preview_group = group
 
+    backend.previewGroupChanged.emit()
     backend.cacheUpdateTrigger.emit()
 def ClearPreviewGroup(clip: Optional[vs.VideoNode]=None):
     backend.preview_group = []
     
+    backend.previewGroupChanged.emit()
     backend.cacheUpdateTrigger.emit()
+def PreviewGroup(clip: Optional[vs.VideoNode]=None):
+    return backend.preview_group
 
 def Show(clip: Optional[vs.VideoNode]=None):
     window_control.show.emit()
-
 def Hide(clip: Optional[vs.VideoNode]=None):
     window_control.hide.emit()

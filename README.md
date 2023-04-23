@@ -2,7 +2,7 @@
 
 vsquickview is a frame-by-frame VapourSynth preview script designed to be used together with Jupyter Notebook with these advantages:  
 
-* Less waiting. vsquickview will run alongside Jupyter Notebook. Everytimes you make an adjustment, you can switch to the vsquickview window to see the updated result immediately.  
+* Less waiting. vsquickview will run alongside Jupyter Notebook. Everytimes you make an adjustment, you can switch to the vsquickview window to view the result immediately.  
 * Easier comparing between two clips with a right click. Blind comparing is also possible.  
 
 *Thanks to*  
@@ -101,3 +101,23 @@ Other usages are listed below:
 * `F` or `F11`: Toggle fullscreen.  
 
 vsquickview will be closed when you terminate or restart the Jupyter Notebook section. If you close the vsquickview window by accident, you can reopen it by calling function `vsquickview.Show()`.  
+
+### Using preview group
+
+Additionally, you can also create preview group for a selecteds list of frames you want to compare.  
+
+Set preview group using the `vsquickview.SetPreviewGroup()` function:  
+```py
+vsqv.SetPreviewGroup([1934, 6849, 13226, 21647, 25374, 26811, 28499, 29111])
+```
+
+In the vsquickview GUI, use `Shift` Key and `Left` Key or `Right` Key to go to the previous or next frame in the set preview group.  
+
+You can also add frame to or remove frame from the preview group using `R` Key from GUI. Afterwards, you can retrieve the current preview group using the `vsquickview.PreviewGroup()` function.  
+
+Here is a short list of functions and their definitions for preview group:  
+```py
+SetPreviewGroup(clip: Union[vs.VideoNode, int, None]=None, group: Optional[list]=None)
+ClearPreviewGroup(clip: Optional[vs.VideoNode]=None)
+PreviewGroup(clip: Optional[vs.VideoNode]=None)
+```
