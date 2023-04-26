@@ -400,7 +400,7 @@ def SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=Non
     assert(type(index) == int and 0 <= index < 10)
 
     backend.switchIndex(index)
-def SetPreviewGroup(clip: Union[vs.VideoNode, int, None]=None, group: Optional[list]=None):
+def SetPreviewGroup(clip: Union[vs.VideoNode, list, None]=None, group: Optional[list]=None):
     if group == None:
         group = clip
     assert(type(group) == list and all([type(item) == int and item >= 0 for item in group]))

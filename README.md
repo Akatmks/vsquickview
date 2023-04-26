@@ -90,7 +90,7 @@ You can cycle between clips using the right mouse button. If you have more than 
 Other usages are listed below:  
 
 * `Left Mouse Button` or `Middle Mouse Button`: Pan the clip preview.  
-* `Scroll Wheel`: Zoom the preview at 100%, 200%, 300%, or 400%.  
+* `Scroll Wheel`: Zoom the preview.  
 * `Right Mouse Button` or `Space`: Switch to the next available clip. `Shift` and `Right Mouse Button` or `Space`: Switch to the previous available clip.  
 * `Alt`: Toggle the label at the bottom-left corner of the screen.  
 * `0`, `1`, `2` … `9`: Switch to the clip at the specific index.  
@@ -104,7 +104,7 @@ vsquickview will be closed when you terminate or restart the Jupyter Notebook se
 
 ### Using preview group
 
-Additionally, you can also create preview group for a selecteds list of frames you want to compare.  
+Additionally, you can also create preview group for a selected list of frames you want to compare.  
 
 Set preview group using the `vsquickview.SetPreviewGroup()` function:  
 ```py
@@ -117,7 +117,7 @@ You can also add frame to or remove frame from the preview group using `R` Key f
 
 Here is a short list of functions and their definitions for preview group:  
 ```py
-SetPreviewGroup(clip: Union[vs.VideoNode, int, None]=None, group: Optional[list]=None)
+SetPreviewGroup(clip: Union[vs.VideoNode, list, None]=None, group: Optional[list]=None)
 ClearPreviewGroup(clip: Optional[vs.VideoNode]=None)
 PreviewGroup(clip: Optional[vs.VideoNode]=None)
 ```
