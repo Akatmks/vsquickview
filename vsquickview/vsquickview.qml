@@ -282,10 +282,10 @@ ApplicationWindow {
 
             else if(event.key === Qt.Key_Right) {
                 if(event.modifiers === Qt.ShiftModifier) {
-                    backend.nextPreviewGroupFrame()
+                    backend.nextTwelveFrames()
                 }
                 else if(event.modifiers === Qt.ControlModifier) {
-                    backend.nextTwelveFrames()
+                    backend.nextPreviewGroupFrame()
                 }
                 else {
                     backend.nextFrame()
@@ -293,10 +293,10 @@ ApplicationWindow {
             }
             else if(event.key === Qt.Key_Left) {
                 if(event.modifiers === Qt.ShiftModifier) {
-                    backend.prevPreviewGroupFrame()
+                    backend.prevTwelveFrames()
                 }
                 else if(event.modifiers === Qt.ControlModifier) {
-                    backend.prevTwelveFrames()
+                    backend.prevPreviewGroupFrame()
                 }
                 else {
                     backend.prevFrame()
