@@ -22,15 +22,15 @@
  * SOFTWARE.
  */
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Controls.Material 2.15
-import QtQuick.Window 2.15
+import QtQuick 6.0
+import QtQuick.Controls 6.0
+import QtQuick.Controls.Material 6.0
+import QtQuick.Window 6.0
 
 ApplicationWindow {
     id: window
-    width: 1280
-    height: 720
+    width: 960
+    height: 540
     visible: true
     visibility: Window.FullScreen
 
@@ -66,8 +66,8 @@ ApplicationWindow {
         anchors.horizontalCenterOffset: 0
         anchors.verticalCenterOffset: 0
 
-        width: sourceSize.width * scale
-        height: sourceSize.height * scale
+        width: sourceSize.width * scale / Screen.devicePixelRatio
+        height: sourceSize.height * scale / Screen.devicePixelRatio
         source: "image://backend/" + Math.random().toExponential()
         property real scale: 1
         smooth: false
@@ -123,13 +123,13 @@ ApplicationWindow {
 
     Label {
         id: label
-        font.pixelSize: 35
+        font.pixelSize: 28
         color: "#B0FFFFFF"
         antialiasing: true
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 54
+        anchors.bottomMargin: 43.2
         anchors.left: parent.left
-        anchors.leftMargin: 84
+        anchors.leftMargin: 68.8
 
         text: ""
         onTextChanged: {

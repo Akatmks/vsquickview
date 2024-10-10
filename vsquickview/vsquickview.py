@@ -28,10 +28,10 @@ import itertools
 import os
 import numpy as np
 from pathlib import Path
-from PyQt5.QtCore import QObject, QMutex, pyqtProperty, pyqtSignal, pyqtSlot, Qt, QRunnable, QThread, QThreadPool
-from PyQt5.QtGui import QGuiApplication, QImage
-from PyQt5.QtQml import QQmlApplicationEngine
-from PyQt5.QtQuick import QQuickImageProvider
+from PyQt6.QtCore import QObject, QMutex, pyqtProperty, pyqtSignal, pyqtSlot, Qt, QRunnable, QThread, QThreadPool
+from PyQt6.QtGui import QGuiApplication, QImage
+from PyQt6.QtQml import QQmlApplicationEngine
+from PyQt6.QtQuick import QQuickImageProvider
 import typing
 from typing import Optional, Union
 import vapoursynth as vs
@@ -55,7 +55,7 @@ def loadImage(clip):
     rgb = np.moveaxis(rgb, 0, -1)
 
     return QImage(rgb.tobytes(), clip.width, clip.height, QImage.Format.Format_RGB888).copy()
-    
+
 ColourBarsCaches = {}
 ColourBarsCaches[0] = loadImage(ColourBars)
 
@@ -117,9 +117,9 @@ class CacheFrames(QRunnable):
 def cacheFrames(index, frame, renew_index):
     CachesThreadPoolLocks[index].lock()
     if renew_index:
-        CachesThreadPools[index].start(CacheFrames(index, frame, True), priority=QThread.Priority.HighPriority)
+        CachesThreadPools[index].start(CacheFrames(index, frame, True), priority=4)
     else:
-        CachesThreadPools[index].start(CacheFrames(index, frame, False), priority=QThread.Priority.NormalPriority)
+        CachesThreadPools[index].start(CacheFrames(index, frame, False), priority=3)
     CachesThreadPoolLocks[index].unlock()
 
 class FreeOldCaches(QRunnable):
@@ -135,7 +135,7 @@ class FreeOldCaches(QRunnable):
         CachesLocks[self.index].unlock()
 def freeOldCaches(index):
     CachesThreadPoolLocks[index].lock()
-    CachesThreadPools[index].start(FreeOldCaches(index), priority=QThread.Priority.IdlePriority)
+    CachesThreadPools[index].start(FreeOldCaches(index), priority=0)
     CachesThreadPoolLocks[index].unlock()
 
 def cancelAllAndClearCache(index):
@@ -335,9 +335,6 @@ class WindowControl(QObject):
 
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Material"
 os.environ["QT_QUICK_CONTROLS_MATERIAL_THEME"] = "Dark"
-os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
-QGuiApplication.setAttribute(Qt.AA_EnableHighDpiScaling, 0)
-QGuiApplication.setAttribute(Qt.AA_UseOpenGLES)
 
 if not (app := QGuiApplication.instance()):
     app = QGuiApplication([])
