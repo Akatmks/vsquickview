@@ -29,7 +29,7 @@ import os
 import numpy as np
 from pathlib import Path
 from PySide6.QtCore import QObject, QMutex, Property, QReadWriteLock, QRunnable, Signal, Slot, QThread, QThreadPool
-from PySide6.QtGui import QGuiApplication, QImage
+from PySide6.QtGui import QColorSpace, QGuiApplication, QImage
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickImageProvider
 import sys
@@ -40,22 +40,24 @@ from vapoursynth import core
 
 
 Clips = [None] * 10
+# [(color_space_in, color_space)]
+ClipColorSpaces = [None] * 10
 Names = [None] * 10
 
 
 from .colourbars import ColourBars
 
-def loadImage(clip, frame):
+def loadImage(clip, clip_color_space, frame):
     if clip.format.color_family == vs.RGB:
         if clip.format.bits_per_sample == 16:
             frame = clip.get_frame(frame)
             r = np.array(frame[0], dtype=np.uint16).reshape((clip.height, clip.width))
             g = np.array(frame[1], dtype=np.uint16).reshape((clip.height, clip.width))
             b = np.array(frame[2], dtype=np.uint16).reshape((clip.height, clip.width))
-            a = np.broadcast_to(np.array([np.iinfo(np.uint16).max], dtype=np.uint16), (clip.height * clip.width, 1))
+            a = np.array([np.iinfo(np.uint16).max], dtype=np.uint16)
+            a = np.broadcast_to(a, (clip.height * clip.width, 1))
             image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)), a)).reshape((clip.height, clip.width, 4))
-
-            return QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGBX64)
+            qimage = QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGBX64)
 
         elif clip.format.bits_per_sample == 8:
             frame = clip.get_frame(frame)
@@ -63,18 +65,27 @@ def loadImage(clip, frame):
             g = np.array(frame[1], dtype=np.uint8).reshape((clip.height, clip.width))
             b = np.array(frame[2], dtype=np.uint8).reshape((clip.height, clip.width))
             image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)))).reshape((clip.height, clip.width, 3))
-
-            return QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGB888)
+            qimage = QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGB888)
 
     elif clip.format.color_family == vs.GRAY:
         if clip.format.bits_per_sample == 16:
-            return QImage(clip.get_frame(frame)[0], clip.width, clip.height, QImage.Format.Format_Grayscale16)
+            qimage = QImage(clip.get_frame(frame)[0], clip.width, clip.height, QImage.Format.Format_Grayscale16)
 
         elif clip.format.bits_per_sample == 8:
-            return QImage(clip.get_frame(frame)[0], clip.width, clip.height, QImage.Format.Format_Grayscale8)
+            qimage = QImage(clip.get_frame(frame)[0], clip.width, clip.height, QImage.Format.Format_Grayscale8)
+
+    qimage.setColorSpace(clip_color_space[0])
+    if clip_color_space[1] != clip_color_space[0]:
+        print(qimage.colorSpace())
+        print(qimage.pixelColor(960, 540))
+        qimage.convertToColorSpace(clip_color_space[1])
+        print(qimage.colorSpace())
+        print(qimage.pixelColor(960, 540))
+
+    return qimage
 
 ColourBarsCaches = {}
-ColourBarsCaches[0] = loadImage(ColourBars, 0)
+ColourBarsCaches[0] = loadImage(ColourBars, (QColorSpace(QColorSpace.SRgb), QColorSpace(QColorSpace.SRgb)), 0)
 
 
 # The image provider in autoclip is unsynced.
@@ -137,7 +148,7 @@ class RequestImage(QRunnable):
                     self.update_Image(img)
                 else:
                     CacheLocks[self.index].unlock()
-                    img = loadImage(Clips[self.index], self.frame)
+                    img = loadImage(Clips[self.index], ClipColorSpaces[self.index], self.frame)
                     self.update_Image(img)
                     self.update_Cache(img)
                 
@@ -147,7 +158,7 @@ class RequestImage(QRunnable):
                     CacheLocks[self.index].unlock()
                 else:
                     CacheLocks[self.index].unlock()
-                    img = loadImage(Clips[self.index], self.frame)
+                    img = loadImage(Clips[self.index], ClipColorSpaces[self.index], self.frame)
                     self.update_Cache(img)
         else:
             if self.do_display:
@@ -380,13 +391,13 @@ qml_file = Path(__file__).with_name("vsquickview.qml").as_posix()
 engine.load(qml_file)
 
 
-def View(clip: vs.VideoNode, index: int, name: Optional[str]=None):
+def View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb)):
     assert(type(index) == int and 0 <= index < 10)
     assert(isinstance(name, typing.get_args(Optional[str])))
 
     clip = clip[:]
     if clip.format.color_family == vs.YUV:
-        clip = clip.resize.Spline36(format=vs.RGB48, matrix_in=vs.MATRIX_BT709, transfer_in=vs.TRANSFER_BT709, dither_type="none")
+        clip = clip.resize.Spline36(format=vs.RGB48, matrix_in=vs.MATRIX_BT709, matrix=vs.MATRIX_RGB, transfer_in=vs.TRANSFER_BT709, transfer=13, dither_type="none")
     elif clip.format.color_family == vs.RGB:
         if clip.format.bits_per_sample == 8:
             pass
@@ -405,6 +416,7 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None):
         raise TypeError("Unsupported clip.format.color_family. vsquickview only supports vs.RGB, vs.YUV or vs.GRAY. To add support for other formats, raise an issue or make a pull request at https://github.com/Akatmks/vsquickview .")
 
     Clips[index] = clip
+    ClipColorSpaces[index] = (color_space_in, color_space)
     Names[index] = name
     CacheThreadPools[index].clear()
     CacheThreadPools[index].waitForDone()
@@ -421,6 +433,7 @@ def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=N
     assert(type(index) == int and 0 <= index < 10)
 
     Clips[index] = None
+    ClipColorSpaces[index] = None
     Names[index] = None
     CacheThreadPools[index].clear()
     CacheThreadPools[index].waitForDone()
