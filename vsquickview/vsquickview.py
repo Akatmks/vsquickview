@@ -32,7 +32,6 @@ from PySide6.QtCore import QObject, QMutex, Property, QReadWriteLock, QRunnable,
 from PySide6.QtGui import QColorSpace, QGuiApplication, QImage
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickImageProvider
-import sys
 import typing
 from typing import Optional, Union
 import vapoursynth as vs
