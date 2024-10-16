@@ -1,6 +1,6 @@
 <h1 align="center">vsquickview</h1>
 
-vsquickview is a frame-by-frame VapourSynth preview script designed to be used together with Jupyter Notebook with these advantages:  
+vsquickview is a VapourSynth preview script designed to be used together with Jupyter Notebook with these advantages:  
 
 * Less waiting. vsquickview will run alongside Jupyter Notebook. Everytimes you make an adjustment, you can switch to the vsquickview window to view the result immediately.  
 * Easier comparing between two clips with a right click, similar to that of [slow.pics](https://slow.pics/). Blind comparing is also possible.  
@@ -25,7 +25,7 @@ Create a new Jupyter Notebook and import vsquickview:
 %gui qt6
 import vsquickview as vsqv
 ```
-`%gui qt6` is a magic command to let Jupyter Notebook integrates with the Qt event loop.  
+`%gui qt6` is a [magic command](https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-gui) to let Jupyter Notebook integrate with the Qt event loop. If you have both PyQt6 and PySide6 installed, you may add `os.environ["QT_API"] = "pyside6"` before `%gui qt6` to so that Jupyter Notebook would initialise with PySide6.  
 
 After this cell is executed, a fullscreen vsquickview window should be opened, showing an ARIB STD-B66 colour bar. We will be looking at the GUI in the next section, but before that, let's see how we can add clips to vsquickview:  
 
@@ -39,7 +39,7 @@ vsqv.View(compare16, 1, "Compare")
 View(clip: vs.VideoNode, index: int, name: Optional[str]=None)
 ```
 
-* The first parameter is the clip to preview. vsquickview accepts `vs.YUV`, `vs.RGB` and `vs.GRAY` formats. vsquickview uses `core.resize.Spline36` internally to [convert](vsquickview/vsquickview.py#L400) the clip to either 16-bit `vs.RGB`, 8-bit `vs.RGB`, 16-bit `vs.GRAY` or 8-bit `vs.GRAY` format. You may supply vsquickview with clips of these formats to avoid conversions. For HDR source or calibrated display, see [Colour management](#colour-management).  
+* The first parameter is the clip to preview. vsquickview accepts `vs.YUV`, `vs.RGB` and `vs.GRAY` formats. vsquickview uses `core.resize.Spline36` internally to [convert](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/vsquickview.py#L400) the clip to either 16-bit `vs.RGB`, 8-bit `vs.RGB`, 16-bit `vs.GRAY` or 8-bit `vs.GRAY` format. You may supply vsquickview with clips of these formats to avoid conversions. For HDR source or calibrated display, see [Colour management](#colour-management).  
 * Similar to vspreview, vsquickview has 10 video slots from 0 to 9. This is specifed using the second parameter `index`.  
 * You can also pass a third parameter to specify a name for the clip. This will be displayed in vsquickview window alongside the clip's index.  
 
@@ -69,7 +69,7 @@ Show(clip: Optional[vs.VideoNode]=None)
 Hide(clip: Optional[vs.VideoNode]=None)
 ```
 
-After previewing, you may directly export Jupyter Notebook to Python file for VSPipe. vsquickview will be automatically [dis](vsquickview/__init__.py)[abled](vsquickview/fakevsquickview.py) when run in VSPipe.  
+After previewing, you may directly export Jupyter Notebook to Python file for VSPipe. vsquickview will be automatically [dis](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/__init__.py#L27-L46)[abled](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/fakevsquickview.py#L26-L43) when run in VSPipe.  
 
 ### Using vsquickview's GUI
 
