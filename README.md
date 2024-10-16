@@ -122,7 +122,7 @@ PreviewGroup(clip: Optional[vs.VideoNode]=None)
 
 ### Colour management
 
-QtQML *does not* currently support colour management. Before auto colour management is possible, you may manually [convert](https://doc.qt.io/qt/qimage.html#convertToColorSpace) the colour by passing two [`QColorSpace`](https://doc.qt.io/qt/qcolorspace.html) instances alongside the clip to `vsquickview.View()`.  
+QtQML doesn't currently support colour management as of Qt 6.7. However, you may manually convert colours by passing two [`QColorSpace`](https://doc.qt.io/qt/qcolorspace.html) instances alongside the clip to `vsquickview.View()`.  
 
 ```py
 from PySide6.QtCore import QFile, QIODevice
@@ -135,16 +135,17 @@ color_space = QColorSpace.fromIccProfile(icc_profile.readAll())
 
 vsqv.View(compare16, index=1, name="Compare", color_space=color_space)
 
-# (2) Previewing HDR videos with an sRGB display.
+# (2) Previewing HDR videos with an uncalibrated Display P3 display.
 # See https://doc.qt.io/qt/qcolorspace.html#public-functions for more
 # ways to construct QColorSpace, including using custom primaries and
 # transfer function or transfer function table.
 color_space_in = QColorSpace(QColorSpace.Bt2020)
+color_space = QColorSpace(QColorSpace.DisplayP3)
 
 # Only supports clips with vs.RGB or vs.GRAY format, because clips with
 # vs.YUV format will be converted internally to vs.RGB assuming BT.709
 # primaries, transfer and matrix.
-vsqv.View(compare16, index=1, name="Compare", color_space_in=color_space_in)
+vsqv.View(compare16, index=1, name="Compare", color_space_in=color_space_in, color_space=color_space)
 ```
 ```py
 # Both `color_space_in` and `color_space` are optional and default to
