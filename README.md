@@ -18,12 +18,6 @@ Install vsquickview from pip:
 python3 -m pip install vsquickview
 ```
 
-vsquickview also requires fmtc to work. Make sure you have fmtc installed or install it using the following command:  
-
-```sh
-vsrepo install fmtc
-```
-
 ### Using vsquickview's Python interface
 
 Create a new Jupyter Notebook and import vsquickview:  
