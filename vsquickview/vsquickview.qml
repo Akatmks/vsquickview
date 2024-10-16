@@ -22,10 +22,10 @@
  * SOFTWARE.
  */
 
-import QtQuick 6.0
-import QtQuick.Controls 6.0
-import QtQuick.Controls.Material 6.0
-import QtQuick.Window 6.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Window
 
 ApplicationWindow {
     id: window
@@ -53,10 +53,12 @@ ApplicationWindow {
         }
     }
 
+    property int image_number: 0
     Connections {
         target: backend
-        function onImageChanged() {
-            image.source = "image://backend/" + Math.random().toExponential()
+        function onImageReady() {
+            image_number++
+            image.source = "image://backend/" + image_number
         }
     }
     
@@ -66,10 +68,11 @@ ApplicationWindow {
         anchors.horizontalCenterOffset: 0
         anchors.verticalCenterOffset: 0
 
+        property real scale: 1
         width: sourceSize.width * scale / Screen.devicePixelRatio
         height: sourceSize.height * scale / Screen.devicePixelRatio
-        source: "image://backend/" + Math.random().toExponential()
-        property real scale: 1
+        source: "image://backend/" + image_number
+        asynchronous: false
         smooth: false
         cache: false
     }
@@ -257,6 +260,10 @@ ApplicationWindow {
                 else if(window.visibility === Window.FullScreen) {
                     window.visibility = previous_visibility
                 }
+            }
+
+            else if(event.key === Qt.Key_Q) {
+                window.close()
             }
 
             else if(event.key === Qt.Key_Space) {

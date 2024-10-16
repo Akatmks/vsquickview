@@ -10,10 +10,6 @@ vsquickview is a frame-by-frame VapourSynth preview script designed to be used t
 * Setsugen no ao for helping with VapourSynth magics.  
 * witchymary and others for helping with the UX.  
 
-**Note:**  
-
-This project has received an surprising amount of publicity recently. Please note that vsquickview is still in rapid development and its functions may subject to change. If there were any changes that would break existing function, we will indicate it by increasing the [MINOR](https://semver.org/#summary) version instead of PATCH. Until version 1.0.0 is released, if you see the MINOR version changes, please remember to revisit this README page to confirm that your existing scripts will work.  
-
 ### Install vsquickview
 
 Install vsquickview from pip:  
@@ -32,10 +28,10 @@ vsrepo install fmtc
 
 Create a new Jupyter Notebook and import vsquickview:  
 ```py
-%gui qt5
+%gui qt6
 import vsquickview as vsqv
 ```
-`%gui qt5` is a magic command to let Jupyter Notebook integrates with the Qt event loop. Please make sure to call it before importing vsquickview.  
+`%gui qt6` is a magic command to let Jupyter Notebook integrates with the Qt event loop. Please make sure to call it before importing vsquickview.  
 
 After this cell is executed, a fullscreen vsquickview window should be opened, showing an ARIB STD-B66 colour bar. We will be looking at the GUI in the next section, but before that, let's see how we can add clips to vsquickview:  
 

@@ -28,139 +28,168 @@ import itertools
 import os
 import numpy as np
 from pathlib import Path
-from PyQt6.QtCore import QObject, QMutex, pyqtProperty, pyqtSignal, pyqtSlot, Qt, QRunnable, QThread, QThreadPool
-from PyQt6.QtGui import QGuiApplication, QImage
-from PyQt6.QtQml import QQmlApplicationEngine
-from PyQt6.QtQuick import QQuickImageProvider
+from PySide6.QtCore import QObject, QMutex, Property, QReadWriteLock, QRunnable, Signal, Slot, QThread, QThreadPool
+from PySide6.QtGui import QGuiApplication, QImage
+from PySide6.QtQml import QQmlApplicationEngine
+from PySide6.QtQuick import QQuickImageProvider
+import sys
 import typing
 from typing import Optional, Union
 import vapoursynth as vs
 from vapoursynth import core
 
 
-from .colourbars import ColourBars
-
 Clips = [None] * 10
 Names = [None] * 10
 
-def loadImage(clip):
+
+from .colourbars import ColourBars
+
+def loadImage(clip, frame):
     if clip.format.bits_per_sample != 8:
         clip = core.fmtc.bitdepth(clip, bits=8)
 
-    frame = clip.get_frame(0)
+    frame = clip.get_frame(frame)
     r = np.array(frame[0], dtype=np.uint8).reshape((clip.height, clip.width))
     g = np.array(frame[1], dtype=np.uint8).reshape((clip.height, clip.width))
     b = np.array(frame[2], dtype=np.uint8).reshape((clip.height, clip.width))
-    rgb = np.stack((r, g, b))
-    rgb = np.moveaxis(rgb, 0, -1)
+    image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)))).reshape((clip.height, clip.width, 3))
 
-    return QImage(rgb.tobytes(), clip.width, clip.height, QImage.Format.Format_RGB888).copy()
+    return QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGB888)
 
 ColourBarsCaches = {}
-ColourBarsCaches[0] = loadImage(ColourBars)
+ColourBarsCaches[0] = loadImage(ColourBars, 0)
+
+
+# The image provider in autoclip is unsynced.
+# When frontend triggers a new frame, the request is sent into priority
+# ThreadPool. When a task in the ThreadPool is completed, it checks the linked
+# list to see if the result is still needed. If so, it set the QImage to
+# Frame, remove anything later than the frame in linked list and trigger a
+# rerender
+Image = ColourBarsCaches[0]
+ImageLock = QMutex()
+# { "index": 0, "frame": 0, "prev": None }
+ImagesPending = None
+ImagesPendingLock = QMutex()
+
+class ImageProvider(QQuickImageProvider):
+    def __init__(self):
+        super().__init__(QQuickImageProvider.ImageType.Image)
+
+    def requestImage(self, id, size, requestedSize):
+        ImageLock.lock()
+        img = Image
+        ImageLock.unlock()
+
+        return img
+
 
 Caches = [{}] * 10
-CachesLocks = []
+CacheHeads = [0] * 10
+CacheLocks = []
 for _ in range(10):
-    CachesLocks.append(QMutex())
-CachesThreadPools = []
+    CacheLocks.append(QReadWriteLock())
+CacheMinimumSize = 15
+CacheCleaningFrequency = 5
+    
+# Loading frames to be displayed is QThread.TimeCriticalPriority
+# Preloading frames is QThread.NormalPriority
+# Cache cleaning is QThread.HighPriority
+CacheThreadPools = []
 for _ in range(10):
     item = QThreadPool()
-    item.setMaxThreadCount(1)
-    CachesThreadPools.append(item)
-CachesThreadPoolLocks = []
-for _ in range(10):
-    CachesThreadPoolLocks.append(QMutex())
+    item.setMaxThreadCount(2)
+    CacheThreadPools.append(item)
 
-def getImage(index, frame):
-    if Clips[index] and 0 <= frame < Clips[index].num_frames:
-        CachesLocks[index].lock()
-        if frame not in Caches[index]:
-            img = Caches[index][frame] = loadImage(Clips[index][frame])
-        else:
-            img = Caches[index][frame]
-            del Caches[index][frame]
-            Caches[index][frame] = img
-        CachesLocks[index].unlock()
-    else:
-        img = ColourBarsCaches[0]
+class RequestImage(QRunnable):
+    def __init__(self, index, frame, do_display=False):
+        super().__init__()
 
-    return img
-
-def cancelPreviousWorks(index):
-    CachesThreadPoolLocks[index].lock()
-    CachesThreadPools[index].clear()
-    CachesThreadPoolLocks[index].unlock()
-
-class CacheFrames(QRunnable):
-    def __init__(self, index, frame, renew_index):
-        super(CacheFrames, self).__init__()
         self.index = index
         self.frame = frame
-        self.renew_index = renew_index
-    @pyqtSlot()
+        self.do_display = do_display
+
     def run(self):
-        if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
-            CachesLocks[self.index].lock()
-            if self.frame not in Caches[self.index]:
-                CachesLocks[self.index].unlock()
-                img = loadImage(Clips[self.index][self.frame])
+        if Clips[self.index] and \
+           0 <= self.frame < Clips[self.index].num_frames:
+            if self.do_display:
+                if CacheLocks[self.index].tryLockForRead() and \
+                   self.frame in Caches[self.index]:
+                    img = Caches[self.index][self.frame]
+                    CacheLocks[self.index].unlock()
+                    self.update_Image(img)
+                else:
+                    CacheLocks[self.index].unlock()
+                    img = loadImage(Clips[self.index], self.frame)
+                    self.update_Image(img)
+                    self.update_Cache(img)
+                
             else:
-                img = Caches[self.index][self.frame]
-                CachesLocks[self.index].unlock()
+                CacheLocks[self.index].lockForRead()
+                if self.frame in Caches[self.index]:
+                    CacheLocks[self.index].unlock()
+                else:
+                    CacheLocks[self.index].unlock()
+                    img = loadImage(Clips[self.index], self.frame)
+                    self.update_Cache(img)
+        else:
+            if self.do_display:
+                self.update_Image(ColourBarsCaches[0])
+                
+    def update_Image(self, img):
+        global Image
+        
+        ImagesPendingLock.lock()
+        head = ImagesPending
+        while head:
+            if head["index"] == self.index and head["frame"] == self.frame:
+                ImageLock.lock()
+                Image = img
+                ImageLock.unlock()
+                backend.imageReady.emit()
+                head["prev"] = None
+                break
 
-            CachesLocks[self.index].lock()
-            if self.renew_index:
-                del Caches[self.index][self.frame]
+            head = head["prev"]
+        ImagesPendingLock.unlock()
+        
+    def update_Cache(self, img):
+        head = None
+        
+        CacheLocks[self.index].lockForWrite()
+        if self.frame in Caches[self.index]:
+            del Caches[self.index][self.frame]
             Caches[self.index][self.frame] = img
-            CachesLocks[self.index].unlock()
-def cacheFrames(index, frame, renew_index):
-    CachesThreadPoolLocks[index].lock()
-    if renew_index:
-        CachesThreadPools[index].start(CacheFrames(index, frame, True), priority=4)
-    else:
-        CachesThreadPools[index].start(CacheFrames(index, frame, False), priority=3)
-    CachesThreadPoolLocks[index].unlock()
-
-class FreeOldCaches(QRunnable):
+        else:
+            Caches[self.index][self.frame] = img
+            head = CacheHeads[self.index] = CacheHeads[self.index] + 1
+        CacheLocks[self.index].unlock()
+        
+        if head and head % CacheCleaningFrequency == 0:
+            CacheThreadPools[self.index].start(CleanCache(self.index), priority=4)
+            
+class CleanCache(QRunnable):
     def __init__(self, index):
-        super(FreeOldCaches, self).__init__()
+        super().__init__()
         self.index = index
-    @pyqtSlot()
-    def run(self):
-        CachesLocks[self.index].lock()
-        frame_list = list(Caches[self.index])
-        for jndex in range(0, len(frame_list) - 18):
-            del Caches[self.index][frame_list[jndex]]
-        CachesLocks[self.index].unlock()
-def freeOldCaches(index):
-    CachesThreadPoolLocks[index].lock()
-    CachesThreadPools[index].start(FreeOldCaches(index), priority=0)
-    CachesThreadPoolLocks[index].unlock()
 
-def cancelAllAndClearCache(index):
-    CachesThreadPoolLocks[index].lock()
-    CachesThreadPools[index].clear()
-    CachesThreadPools[index].waitForDone()
-    CachesLocks[index].lock()
-    Caches[index] = {}
-    CachesLocks[index].unlock()
-    CachesThreadPoolLocks[index].unlock()
+    def run(self):
+        CacheLocks[self.index].lockForWrite()
+        frame_list = list(Caches[self.index])
+        for jndex in range(0, len(frame_list) - CacheMinimumSize):
+            del Caches[self.index][frame_list[jndex]]
+        CacheLocks[self.index].unlock()
 
 
 class Backend(QObject):
     def __init__(self):
         QObject.__init__(self)
 
-        self.indexChanged.connect(self.imageChanged)
-        self.frameChanged.connect(self.imageChanged)
+        self.indexChanged.connect(self.updateImage)
+        self.frameChanged.connect(self.updateImage)
 
         self.indexChanged.connect(self.updateName)
-
-        self.imageChanged.connect(self.manageCache)
-        self.cacheUpdateTrigger.connect(self.manageCache)
-
-    cacheUpdateTrigger = pyqtSignal()
 
     _index = 0
     def index_(self):
@@ -169,8 +198,8 @@ class Backend(QObject):
         if self._index != index:
             self._index = index
             self.indexChanged.emit()
-    indexChanged = pyqtSignal()
-    index = pyqtProperty(int, index_, setIndex, notify=indexChanged)
+    indexChanged = Signal()
+    index = Property(int, index_, setIndex, notify=indexChanged)
 
     _frame = 0
     def frame_(self):
@@ -179,11 +208,23 @@ class Backend(QObject):
         if self._frame != frame:
             self._frame = frame
             self.frameChanged.emit()
-    frameChanged = pyqtSignal()
-    frame = pyqtProperty(int, frame_, setFrame, notify=frameChanged)
-
-    preview_group = []
-
+    frameChanged = Signal()
+    frame = Property(int, frame_, setFrame, notify=frameChanged)
+    
+    @Slot()
+    def updateImage(self):
+        global ImagesPending
+        
+        ImagesPendingLock.lock()
+        CacheThreadPools[self.index].clear()
+        CacheThreadPools[self.index].start(RequestImage(self.index, self.frame, True), priority=6)
+        ImagesPending = { "index": self.index, "frame": self.frame, "prev": ImagesPending }
+        ImagesPendingLock.unlock()
+        for jndex in range(10):
+            if Clips[jndex] and jndex != self.index:
+                CacheThreadPools[jndex].start(RequestImage(jndex, self.frame, False), priority=3)
+    imageReady = Signal()
+    
     _name = ""
     def name_(self):
         return self._name
@@ -191,46 +232,48 @@ class Backend(QObject):
         if self._name != name:
             self._name = name
             self.nameChanged.emit()
-    nameChanged = pyqtSignal()
-    name = pyqtProperty(str, name_, setName, notify=nameChanged)
-    
-    imageChanged = pyqtSignal()
-    @pyqtSlot()
+    nameChanged = Signal()
+    name = Property(str, name_, setName, notify=nameChanged)
+
+    preview_group = []
+    previewGroupChanged = Signal()
+
+    @Slot()
     def updateName(self):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
             self.name = Names[self.index]
         else:
             self.name = ""
 
-    @pyqtSlot()
+    @Slot()
     def prevIndex(self):
         for i in range(self.index - 1, -1, -1):
             if Clips[i] and 0 <= self.frame < Clips[i].num_frames:
                 self.index = i
                 return
-    @pyqtSlot()
+    @Slot()
     def nextIndex(self):
         for i in range(self.index + 1, 10):
             if Clips[i] and 0 <= self.frame < Clips[i].num_frames:
                 self.index = i
                 return
-    @pyqtSlot()
+    @Slot()
     def cycleIndex(self):
         for i in itertools.chain(range(self.index + 1, 10), range(self.index)):
             if Clips[i] and 0 <= self.frame < Clips[i].num_frames:
                 self.index = i
                 return
-    @pyqtSlot()
+    @Slot()
     def cycleIndexBackwards(self):
         for i in itertools.chain(range(self.index - 1, -1, -1), range(10 - 1, self.index, -1)):
             if Clips[i] and 0 <= self.frame < Clips[i].num_frames:
                 self.index = i
                 return
-    @pyqtSlot(int)
+    @Slot(int)
     def switchIndex(self, index):
         self.index = index
 
-    @pyqtSlot()
+    @Slot()
     def prevFrame(self):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
             if self.frame > 0:
@@ -239,7 +282,7 @@ class Backend(QObject):
                 self.frame = 0
         else:
             self.frame = self.frame - 1
-    @pyqtSlot()
+    @Slot()
     def prevTwelveFrames(self):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
             if self.frame >= 12:
@@ -248,13 +291,13 @@ class Backend(QObject):
                 self.frame = 0
         else:
             self.frame = self.frame - 12
-    @pyqtSlot()
+    @Slot()
     def prevPreviewGroupFrame(self):
         if self.preview_group:
             self.frame = self.preview_group[max(bisect.bisect_left(self.preview_group, self.frame - 1) - 1, 0)]
         else:
             self.prevFrame()
-    @pyqtSlot()
+    @Slot()
     def nextFrame(self):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
             if self.frame < Clips[self.index].num_frames - 1:
@@ -263,7 +306,7 @@ class Backend(QObject):
                 self.frame = Clips[self.index].num_frames - 1
         else:
             self.frame = self.frame + 1
-    @pyqtSlot()
+    @Slot()
     def nextTwelveFrames(self):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
             if self.frame < Clips[self.index].num_frames - 12:
@@ -272,21 +315,20 @@ class Backend(QObject):
                 self.frame = Clips[self.index].num_frames - 1
         else:
             self.frame = self.frame + 12
-    @pyqtSlot()
+    @Slot()
     def nextPreviewGroupFrame(self):
         if self.preview_group:
             self.frame = self.preview_group[bisect.bisect_left(self.preview_group, self.frame + 1)]
         else:
             self.nextFrame()
-    @pyqtSlot(int)
+    @Slot(int)
     def switchFrame(self, frame):
         self.frame = frame
-
-    previewGroupChanged = pyqtSignal()
-    @pyqtSlot(result=bool)
+    
+    @Slot(result=bool)
     def frameInPreviewGroup(self):
         return self.frame in self.preview_group
-    @pyqtSlot()
+    @Slot()
     def toggleFrameInPreviewGroup(self):
         if self.frame in self.preview_group:
             self.preview_group.remove(self.frame)
@@ -295,42 +337,13 @@ class Backend(QObject):
             self.preview_group.sort()
         self.previewGroupChanged.emit()
 
-    @pyqtSlot()
-    def manageCache(self):
-        cancelPreviousWorks(self.index)
-
-        cacheFrames(self.index, self.frame, True)
-        for index in range(10):
-            cacheFrames(index, self.frame, False)
-        if self.preview_group:
-            for frame in [self.preview_group[max(bisect.bisect_left(self.preview_group, self.frame - 1) - 1, 0)],
-                          self.preview_group[bisect.bisect_left(self.preview_group, self.frame + 1)],
-                          self.frame + 1,
-                          self.frame - 1]:
-                cacheFrames(self.index, frame, False)
-        else:
-            for frame in [self.frame + 1, self.frame - 1, self.frame + 2, self.frame - 2]:
-                cacheFrames(self.index, frame, False)
-        cacheFrames(self.index, self.frame, True)
-
-        freeOldCaches(self.index)
-        
-
-class ImageProvider(QQuickImageProvider):
-    def __init__(self):
-        super(ImageProvider, self).__init__(QQuickImageProvider.ImageType.Image)
-
-    def requestImage(self, id, requestedSize):
-        img = getImage(backend.index, backend.frame)
-        return img, img.size()
-
 
 class WindowControl(QObject):
     def __init__(self):
         QObject.__init__(self)
 
-    show = pyqtSignal()
-    hide = pyqtSignal()
+    show = Signal()
+    hide = Signal()
 
 
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Material"
@@ -364,12 +377,14 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None):
 
     Clips[index] = clip
     Names[index] = name
-    cancelAllAndClearCache(index)
+    CacheThreadPools[index].clear()
+    CacheThreadPools[index].waitForDone()
+    CacheLocks[index].lockForWrite()
+    Caches[index] = {}
+    CacheHeads[index] = 0
+    CacheLocks[index].unlock()
 
-    if backend.index == index:
-        backend.indexChanged.emit()
-    else:
-        backend.cacheUpdateTrigger.emit()
+    backend.indexChanged.emit()
 
 def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None):
     if index == None:
@@ -378,12 +393,15 @@ def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=N
 
     Clips[index] = None
     Names[index] = None
-    cancelAllAndClearCache(index)
+    CacheThreadPools[index].clear()
+    CacheThreadPools[index].waitForDone()
+    CacheLocks[index].lockForWrite()
+    Caches[index] = {}
+    CacheHeads[index] = 0
+    CacheLocks[index].unlock()
 
     if backend.index == index:
         backend.indexChanged.emit()
-    else:
-        backend.cacheUpdateTrigger.emit()
 
 def SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None):
     if frame == None:
@@ -408,12 +426,10 @@ def SetPreviewGroup(clip: Union[vs.VideoNode, list, None]=None, group: Optional[
     backend.preview_group = group
 
     backend.previewGroupChanged.emit()
-    backend.cacheUpdateTrigger.emit()
 def ClearPreviewGroup(clip: Optional[vs.VideoNode]=None):
     backend.preview_group = []
     
     backend.previewGroupChanged.emit()
-    backend.cacheUpdateTrigger.emit()
 def PreviewGroup(clip: Optional[vs.VideoNode]=None):
     return backend.preview_group
 
