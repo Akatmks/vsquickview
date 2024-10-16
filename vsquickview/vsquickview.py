@@ -75,11 +75,7 @@ def loadImage(clip, clip_color_space, frame):
 
     qimage.setColorSpace(clip_color_space[0])
     if clip_color_space[1] != clip_color_space[0]:
-        print(qimage.colorSpace())
-        print(qimage.pixelColor(960, 540))
         qimage.convertToColorSpace(clip_color_space[1])
-        print(qimage.colorSpace())
-        print(qimage.pixelColor(960, 540))
 
     return qimage
 
