@@ -7,7 +7,7 @@ vsquickview is a frame-by-frame VapourSynth preview script designed to be used t
 
 *Thanks to*  
 
-* Setsugen no ao for helping with VapourSynth magics.  
+* Setsugen no ao and Zewia for helping with VapourSynth magics.  
 * witchymary and others for helping with the UX.  
 
 ### Install vsquickview
