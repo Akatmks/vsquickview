@@ -46,16 +46,32 @@ Names = [None] * 10
 from .colourbars import ColourBars
 
 def loadImage(clip, frame):
-    if clip.format.bits_per_sample != 8:
-        clip = core.fmtc.bitdepth(clip, bits=8)
+    if clip.format.color_family == vs.RGB:
+        if clip.format.bits_per_sample == 16:
+            frame = clip.get_frame(frame)
+            r = np.array(frame[0], dtype=np.uint16).reshape((clip.height, clip.width))
+            g = np.array(frame[1], dtype=np.uint16).reshape((clip.height, clip.width))
+            b = np.array(frame[2], dtype=np.uint16).reshape((clip.height, clip.width))
+            a = np.broadcast_to(np.array([np.iinfo(np.uint16).max], dtype=np.uint16), (clip.height * clip.width, 1))
+            image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)), a)).reshape((clip.height, clip.width, 4))
 
-    frame = clip.get_frame(frame)
-    r = np.array(frame[0], dtype=np.uint8).reshape((clip.height, clip.width))
-    g = np.array(frame[1], dtype=np.uint8).reshape((clip.height, clip.width))
-    b = np.array(frame[2], dtype=np.uint8).reshape((clip.height, clip.width))
-    image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)))).reshape((clip.height, clip.width, 3))
+            return QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGBX64)
 
-    return QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGB888)
+        elif clip.format.bits_per_sample == 8:
+            frame = clip.get_frame(frame)
+            r = np.array(frame[0], dtype=np.uint8).reshape((clip.height, clip.width))
+            g = np.array(frame[1], dtype=np.uint8).reshape((clip.height, clip.width))
+            b = np.array(frame[2], dtype=np.uint8).reshape((clip.height, clip.width))
+            image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)))).reshape((clip.height, clip.width, 3))
+
+            return QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGB888)
+
+    elif clip.format.color_family == vs.GRAY:
+        if clip.format.bits_per_sample == 16:
+            return QImage(clip.get_frame(frame)[0], clip.width, clip.height, QImage.Format.Format_Grayscale16)
+
+        elif clip.format.bits_per_sample == 8:
+            return QImage(clip.get_frame(frame)[0], clip.width, clip.height, QImage.Format.Format_Grayscale8)
 
 ColourBarsCaches = {}
 ColourBarsCaches[0] = loadImage(ColourBars, 0)
@@ -90,7 +106,7 @@ CacheHeads = [0] * 10
 CacheLocks = []
 for _ in range(10):
     CacheLocks.append(QReadWriteLock())
-CacheMinimumSize = 15
+CacheMinimumSize = 10
 CacheCleaningFrequency = 5
     
 # Loading frames to be displayed is QThread.TimeCriticalPriority
@@ -370,10 +386,23 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None):
 
     clip = clip[:]
     if clip.format.color_family == vs.YUV:
-        clip = core.fmtc.resample(clip, css="444", kernel="spline36")
-        clip = core.fmtc.matrix(clip, mat="709", col_fam=vs.RGB)
-    if clip.format.bits_per_sample != 8:
-        clip = core.fmtc.bitdepth(clip, bits=8)
+        clip = clip.resize.Spline36(format=vs.RGB48, matrix_in=vs.MATRIX_BT709, transfer_in=vs.TRANSFER_BT709, dither_type="none")
+    elif clip.format.color_family == vs.RGB:
+        if clip.format.bits_per_sample == 8:
+            pass
+        elif clip.format.bits_per_sample == 16:
+            pass
+        else:
+            clip = clip.resize.Spline36(format=vs.RGB48, dither_type="none")
+    elif clip.format.color_family == vs.GRAY:
+        if clip.format.bits_per_sample == 8:
+            pass
+        elif clip.format.bits_per_sample == 16:
+            pass
+        else:
+            clip = clip.resize.Spline36(format=vs.GRAY16, dither_type="none")
+    else:
+        raise TypeError("Unsupported clip.format.color_family. vsquickview only supports vs.RGB, vs.YUV or vs.GRAY. To add support for other formats, raise an issue or make a pull request at https://github.com/Akatmks/vsquickview .")
 
     Clips[index] = clip
     Names[index] = name

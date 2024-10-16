@@ -117,3 +117,4 @@ pattern_4 = core.std.StackHorizontal([core.std.BlankClip(None, 240, 270, color=[
                                       core.std.BlankClip(None, 282, 270, color=[ 64,  64,  64], format=vs.RGB30, length=1, fpsnum=24000, fpsden=1001),
                                       full_hd_pattern])
 ColourBars = core.std.StackVertical([pattern_1, pattern_2, pattern_3, pattern_4])
+ColourBars = core.resize.Spline36(ColourBars, format=vs.RGB48)
