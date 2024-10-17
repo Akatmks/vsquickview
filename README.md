@@ -3,7 +3,7 @@
 vsquickview is a VapourSynth preview script designed to be used together with Jupyter Notebook with these advantages:  
 
 * Less waiting. vsquickview will run alongside Jupyter Notebook. Everytimes you make an adjustment, you can switch to the vsquickview window to view the result immediately.  
-* Easier comparing between two clips with a right click, similar to that of [slow.pics](https://slow.pics/). Blind comparing is also possible.  
+* Easier comparing between two clips with a right click similar to that of [slow.pics](https://slow.pics/). Blind comparing is also possible.  
 
 *Thanks to*  
 
@@ -27,7 +27,9 @@ import vsquickview as vsqv
 ```
 `%gui qt6` is a [magic command](https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-gui) to let Jupyter Notebook integrate with the Qt event loop. If you have both PyQt6 and PySide6 installed, you may add `os.environ["QT_API"] = "pyside6"` before `%gui qt6` to so that Jupyter Notebook would initialise with PySide6.  
 
-After this cell is executed, a fullscreen vsquickview window should be opened, showing an ARIB STD-B66 colour bar. We will be looking at the GUI in the next section, but before that, let's see how we can add clips to vsquickview:  
+After this cell is executed, a fullscreen vsquickview window should open, showing an ARIB STD-B66 colour bar. On the OS Akatsumekusa's using, this fullscreen window would be opened in the background and won't take the focus from Jupyter Notebook. If this behaviour is different on your OS and troubles you, please [create](https://github.com/Akatmks/vsquickview/issues) an issue and we will see how we can address it.  
+
+We will be looking at the GUI in the [next section](#using-vsquickviews-gui). Before that, let's see how we can add clips to vsquickview:  
 
 ```py
 vsqv.View(src16, 0, "Source")
@@ -53,7 +55,7 @@ To remove a clip with a specific index:
 vsqv.RemoveView(1)
 ```
 
-If you prefer a more VapourSynth-style call to vsquickview, you could call the functions like:  
+If you prefer a VapourSynth-style call to vsquickview, you could call the functions like:  
 ```py
 vsqv.View(compare16, index=1, name="Compare")
 vsqv.RemoveView(None, index=1)
@@ -61,12 +63,12 @@ vsqv.RemoveView(None, index=1)
 
 Here is a short list of functions and their definitions in vsquickview:  
 ```py
-View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb))
-RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None)
-SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None)
-SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None)
-Show(clip: Optional[vs.VideoNode]=None)
-Hide(clip: Optional[vs.VideoNode]=None)
+View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb)) -> None
+RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None) -> None
+SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None) -> None
+SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None) -> None
+Show(clip: Optional[vs.VideoNode]=None) -> None
+Hide(clip: Optional[vs.VideoNode]=None) -> None
 ```
 
 After previewing, you may directly export Jupyter Notebook to Python file for VSPipe. vsquickview will be automatically [dis](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/__init__.py#L27-L46)[abled](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/fakevsquickview.py#L26-L43) when run in VSPipe.  
@@ -115,9 +117,9 @@ pg = vsqv.PreviewGroup()
 
 Here is a short list of functions and their definitions for preview group:  
 ```py
-SetPreviewGroup(clip: Union[vs.VideoNode, list, None]=None, group: Optional[list]=None)
-ClearPreviewGroup(clip: Optional[vs.VideoNode]=None)
-PreviewGroup(clip: Optional[vs.VideoNode]=None)
+SetPreviewGroup(clip: Union[vs.VideoNode, list[int], None]=None, group: Optional[list[int]]=None) -> None
+ClearPreviewGroup(clip: Optional[vs.VideoNode]=None) -> None
+PreviewGroup(clip: Optional[vs.VideoNode]=None) -> list[int]
 ```
 
 ### Colour management
@@ -150,5 +152,5 @@ vsqv.View(compare16, index=1, name="Compare", color_space_in=color_space_in, col
 ```py
 # Both `color_space_in` and `color_space` are optional and default to
 # `QColorSpace(QColorSpace.SRgb)`.  
-View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb))
+View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb)) -> None
 ```

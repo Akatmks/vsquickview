@@ -410,7 +410,7 @@ qml_file = Path(__file__).with_name("vsquickview.qml").as_posix()
 engine.load(qml_file)
 
 
-def View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb)):
+def View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb)) -> None:
     assert(type(index) == int and 0 <= index < 10)
     assert(isinstance(name, typing.get_args(Optional[str])))
 
@@ -447,7 +447,7 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_i
 
     backend.indexChanged.emit()
 
-def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None):
+def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None) -> None:
     if index == None:
         index = clip
     assert(type(index) == int and 0 <= index < 10)
@@ -466,37 +466,37 @@ def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=N
     if backend.index == index:
         backend.indexChanged.emit()
 
-def SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None):
+def SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None) -> None:
     if frame == None:
         frame = clip
     assert(type(frame) == int)
 
     backend.switchFrame(frame)
-def SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None):
+def SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None) -> None:
     if index == None:
         index = clip
     assert(type(index) == int and 0 <= index < 10)
 
     backend.switchIndex(index)
-def SetPreviewGroup(clip: Union[vs.VideoNode, list, None]=None, group: Optional[list]=None):
+def SetPreviewGroup(clip: Union[vs.VideoNode, list[int], None]=None, group: Optional[list[int]]=None) -> None:
     if group == None:
         group = clip
-    assert(type(group) == list and all([type(item) == int and item >= 0 for item in group]))
 
     group = list(set(group))
+    assert(all([type(item) == int and item >= 0 for item in group]))
     group.sort()
 
     backend.preview_group = group
 
     backend.previewGroupChanged.emit()
-def ClearPreviewGroup(clip: Optional[vs.VideoNode]=None):
+def ClearPreviewGroup(clip: Optional[vs.VideoNode]=None) -> None:
     backend.preview_group = []
     
     backend.previewGroupChanged.emit()
-def PreviewGroup(clip: Optional[vs.VideoNode]=None):
-    return backend.preview_group
+def PreviewGroup(clip: Optional[vs.VideoNode]=None) -> list[int]:
+    return list(backend.preview_group)
 
-def Show(clip: Optional[vs.VideoNode]=None):
+def Show(clip: Optional[vs.VideoNode]=None) -> None:
     window_control.show.emit()
-def Hide(clip: Optional[vs.VideoNode]=None):
+def Hide(clip: Optional[vs.VideoNode]=None) -> None:
     window_control.hide.emit()
