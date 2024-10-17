@@ -115,14 +115,19 @@ for _ in range(10):
 CacheMinimumSize = 10
 CacheCleaningFrequency = 5
     
-# Loading frames to be displayed is QThread.TimeCriticalPriority
-# Preloading frames is QThread.NormalPriority
-# Cache cleaning is QThread.HighPriority
-CacheThreadPools = []
-for _ in range(10):
-    item = QThreadPool()
-    item.setMaxThreadCount(2)
-    CacheThreadPools.append(item)
+# Loading frames to be displayed is 5
+# Preloading frames is 2
+# Cache cleaning is runned in reserved thread
+CacheThreadPool = QThreadPool()
+CacheThreadPool.setMaxThreadCount(3)
+# This lock is used when adding runnables to CacheThreadPool
+# vsqv.View() and vsqv.RemoveView() uses the write lock,
+# Backend.updateImage() and LoadImageOfNearbyIndex() uses the read lock
+CacheThreadPoolLock = QReadWriteLock()
+
+LoadImageOfNearbyIndexThreadPool = QThreadPool()
+LoadImageOfNearbyIndexThreadPool.setMaxThreadCount(1)
+
 
 class RequestImage(QRunnable):
     def __init__(self, index, frame, do_display=False):
@@ -189,20 +194,31 @@ class RequestImage(QRunnable):
         CacheLocks[self.index].unlock()
         
         if head and head % CacheCleaningFrequency == 0:
-            CacheThreadPools[self.index].start(CleanCache(self.index), priority=4)
-            
-class CleanCache(QRunnable):
-    def __init__(self, index):
+            CacheLocks[self.index].lockForWrite()
+            frame_list = list(Caches[self.index])
+            for jndex in range(0, len(frame_list) - CacheMinimumSize):
+                del Caches[self.index][frame_list[jndex]]
+            CacheLocks[self.index].unlock()
+
+class LoadImageOfNearbyIndex(QRunnable):
+    def __init__(self, index, frame):
         super().__init__()
+
         self.index = index
-
+        self.frame = frame
+        
     def run(self):
-        CacheLocks[self.index].lockForWrite()
-        frame_list = list(Caches[self.index])
-        for jndex in range(0, len(frame_list) - CacheMinimumSize):
-            del Caches[self.index][frame_list[jndex]]
-        CacheLocks[self.index].unlock()
-
+        CacheThreadPool.waitForDone()
+        if CacheThreadPoolLock.tryLockForRead():
+            for jndex in itertools.chain(range(self.index + 1, 10), range(self.index)):
+                if Clips[jndex]:
+                    CacheThreadPool.start(RequestImage(jndex, self.frame, False), priority=2)
+                    break
+            for jndex in itertools.chain(range(self.index - 1, -1, -1), range(10 - 1, self.index, -1)):
+                if Clips[jndex]:
+                    CacheThreadPool.start(RequestImage(jndex, self.frame, False), priority=2)
+                    break
+            CacheThreadPoolLock.unlock()
 
 class Backend(QObject):
     def __init__(self):
@@ -237,14 +253,15 @@ class Backend(QObject):
     def updateImage(self):
         global ImagesPending
         
+        CacheThreadPoolLock.lockForRead()
+        CacheThreadPool.clear()
         ImagesPendingLock.lock()
-        CacheThreadPools[self.index].clear()
-        CacheThreadPools[self.index].start(RequestImage(self.index, self.frame, True), priority=6)
+        CacheThreadPool.start(RequestImage(self.index, self.frame, True), priority=5)
+        CacheThreadPoolLock.unlock()
         ImagesPending = { "index": self.index, "frame": self.frame, "prev": ImagesPending }
         ImagesPendingLock.unlock()
-        for jndex in range(10):
-            if Clips[jndex] and jndex != self.index:
-                CacheThreadPools[jndex].start(RequestImage(jndex, self.frame, False), priority=3)
+        LoadImageOfNearbyIndexThreadPool.clear()
+        LoadImageOfNearbyIndexThreadPool.start(LoadImageOfNearbyIndex(self.index, self.frame))
     imageReady = Signal()
     
     _name = ""
@@ -413,12 +430,13 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_i
     Clips[index] = clip
     ClipColorSpaces[index] = (color_space_in, color_space)
     Names[index] = name
-    CacheThreadPools[index].clear()
-    CacheThreadPools[index].waitForDone()
+    CacheThreadPoolLock.lockForWrite()
+    CacheThreadPool.waitForDone()
     CacheLocks[index].lockForWrite()
     Caches[index] = {}
     CacheHeads[index] = 0
     CacheLocks[index].unlock()
+    CacheThreadPoolLock.unlock()
 
     backend.indexChanged.emit()
 
@@ -430,12 +448,13 @@ def RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=N
     Clips[index] = None
     ClipColorSpaces[index] = None
     Names[index] = None
-    CacheThreadPools[index].clear()
-    CacheThreadPools[index].waitForDone()
+    CacheThreadPoolLock.lockForWrite()
+    CacheThreadPool.waitForDone()
     CacheLocks[index].lockForWrite()
     Caches[index] = {}
     CacheHeads[index] = 0
     CacheLocks[index].unlock()
+    CacheThreadPoolLock.unlock()
 
     if backend.index == index:
         backend.indexChanged.emit()
