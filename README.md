@@ -154,3 +154,7 @@ vsqv.View(compare16, index=1, name="Compare", color_space_in=color_space_in, col
 # `QColorSpace(QColorSpace.SRgb)`.  
 View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb)) -> None
 ```
+
+### Options
+
+* Set `os.environ["VSQV_FORCE_8_BIT"] = "1"` before calling `vsqv.View()` to force 8-bit preview instead of preferring 16-bit. This may improve frame loading performance on slower machines.  

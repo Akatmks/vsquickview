@@ -211,16 +211,30 @@ class LoadImageOfNearbyIndex(QRunnable):
         
     def run(self):
         CacheThreadPool.waitForDone()
-        if CacheThreadPoolLock.tryLockForRead():
-            for jndex in itertools.chain(range(self.index + 1, 10), range(self.index)):
-                if Clips[jndex]:
-                    CacheThreadPool.start(RequestImage(jndex, self.frame, False), priority=2)
-                    break
-            for jndex in itertools.chain(range(self.index - 1, -1, -1), range(10 - 1, self.index, -1)):
-                if Clips[jndex]:
-                    CacheThreadPool.start(RequestImage(jndex, self.frame, False), priority=2)
-                    break
-            CacheThreadPoolLock.unlock()
+        ImagesPendingLock.lock()
+        if ImagesPending["frame"] == self.frame:
+            ImagesPendingLock.unlock()
+            if CacheThreadPoolLock.tryLockForRead():
+                for jndex in itertools.chain(range(self.index + 1, 10), range(self.index)):
+                    if Clips[jndex]:
+                        CacheThreadPool.start(RequestImage(jndex, self.frame, False), priority=2)
+                        break
+                CacheThreadPoolLock.unlock()
+                
+                CacheThreadPool.waitForDone()
+                ImagesPendingLock.lock()
+                if ImagesPending["frame"] == self.frame:
+                    ImagesPendingLock.unlock()
+                    if CacheThreadPoolLock.tryLockForRead():
+                        for jndex in itertools.chain(range(self.index - 1, -1, -1), range(10 - 1, self.index, -1)):
+                            if Clips[jndex]:
+                                CacheThreadPool.start(RequestImage(jndex, self.frame, False), priority=2)
+                                break
+                        CacheThreadPoolLock.unlock()
+                else:
+                    ImagesPendingLock.unlock()
+        else:
+            ImagesPendingLock.unlock()
 
 class Backend(QObject):
     def __init__(self):
@@ -395,6 +409,9 @@ class WindowControl(QObject):
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Material"
 os.environ["QT_QUICK_CONTROLS_MATERIAL_THEME"] = "Dark"
 
+# Options
+# os.environ["VSQV_FORCE_8_BIT"]
+
 if not (app := QGuiApplication.instance()):
     app = QGuiApplication([])
 engine = QQmlApplicationEngine()
@@ -415,24 +432,35 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_i
     assert(isinstance(name, typing.get_args(Optional[str])))
 
     clip = clip[:]
-    if clip.format.color_family == vs.YUV:
-        clip = clip.resize.Spline36(format=vs.RGB48, matrix_in=vs.MATRIX_BT709, matrix=vs.MATRIX_RGB, transfer_in=vs.TRANSFER_BT709, transfer=13, dither_type="none")
-    elif clip.format.color_family == vs.RGB:
-        if clip.format.bits_per_sample == 8:
-            pass
-        elif clip.format.bits_per_sample == 16:
-            pass
+    if "VSQV_FORCE_8_BIT" not in os.environ:
+        if clip.format.color_family == vs.YUV:
+            clip = clip.resize.Spline36(format=vs.RGB48, matrix_in=vs.MATRIX_BT709, matrix=vs.MATRIX_RGB, transfer_in=vs.TRANSFER_BT709, transfer=13, dither_type="none")
+        elif clip.format.color_family == vs.RGB:
+            if clip.format.bits_per_sample == 8:
+                pass
+            elif clip.format.bits_per_sample == 16:
+                pass
+            else:
+                clip = clip.resize.Spline36(format=vs.RGB48, dither_type="none")
+        elif clip.format.color_family == vs.GRAY:
+            if clip.format.bits_per_sample == 8:
+                pass
+            elif clip.format.bits_per_sample == 16:
+                pass
+            else:
+                clip = clip.resize.Spline36(format=vs.GRAY16, dither_type="none")
         else:
-            clip = clip.resize.Spline36(format=vs.RGB48, dither_type="none")
-    elif clip.format.color_family == vs.GRAY:
-        if clip.format.bits_per_sample == 8:
-            pass
-        elif clip.format.bits_per_sample == 16:
-            pass
+            raise TypeError("Unsupported clip.format.color_family. vsquickview only supports vs.RGB, vs.YUV or vs.GRAY. To add support for other formats, raise an issue or make a pull request at https://github.com/Akatmks/vsquickview .")
+
+    else: # "VSQV_FORCE_8_BIT" in os.environ
+        if clip.format.color_family == vs.YUV:
+            clip = clip.resize.Spline36(format=vs.RGB24, matrix_in=vs.MATRIX_BT709, matrix=vs.MATRIX_RGB, transfer_in=vs.TRANSFER_BT709, transfer=13, dither_type="none")
+        elif clip.format.color_family == vs.RGB:
+            clip = clip.resize.Spline36(format=vs.RGB24, dither_type="none")
+        elif clip.format.color_family == vs.GRAY:
+            clip = clip.resize.Spline36(format=vs.GRAY8, dither_type="none")
         else:
-            clip = clip.resize.Spline36(format=vs.GRAY16, dither_type="none")
-    else:
-        raise TypeError("Unsupported clip.format.color_family. vsquickview only supports vs.RGB, vs.YUV or vs.GRAY. To add support for other formats, raise an issue or make a pull request at https://github.com/Akatmks/vsquickview .")
+            raise TypeError("Unsupported clip.format.color_family. vsquickview only supports vs.RGB, vs.YUV or vs.GRAY. To add support for other formats, raise an issue or make a pull request at https://github.com/Akatmks/vsquickview .")
 
     Clips[index] = clip
     ClipColorSpaces[index] = (color_space_in, color_space)
