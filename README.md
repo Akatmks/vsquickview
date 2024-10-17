@@ -147,9 +147,9 @@ vsqv.View(compare16, index=1, name="Compare", color_space=color_space)
 color_space_in = QColorSpace(QColorSpace.Bt2020)
 color_space = QColorSpace(QColorSpace.DisplayP3)
 
-# Only supports clips with vs.RGB or vs.GRAY format, because clips with
-# vs.YUV format will be converted internally to vs.RGB assuming BT.709
-# primaries, transfer and matrix.
+# Only supports clips of vs.RGB or vs.GRAY format for HDR sources,
+# the reason being clips with vs.YUV format will be converted
+# internally to vs.RGB assuming BT.709 primaries, transfer and matrix.
 vsqv.View(compare16, index=1, name="Compare", color_space_in=color_space_in, color_space=color_space)
 ```
 ```py
