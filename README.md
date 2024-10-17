@@ -67,6 +67,9 @@ View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: Q
 RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None) -> None
 SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None) -> None
 SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None) -> None
+SetPreviewGroup(clip: Union[vs.VideoNode, list[int], None]=None, group: Optional[list[int]]=None) -> None
+ClearPreviewGroup(clip: Optional[vs.VideoNode]=None) -> None
+PreviewGroup(clip: Optional[vs.VideoNode]=None) -> list[int]
 Show(clip: Optional[vs.VideoNode]=None) -> None
 Hide(clip: Optional[vs.VideoNode]=None) -> None
 ```
@@ -155,6 +158,6 @@ vsqv.View(compare16, index=1, name="Compare", color_space_in=color_space_in, col
 View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb)) -> None
 ```
 
-### Options
+### Additional vsquickview options
 
-* Set `os.environ["VSQV_FORCE_8_BIT"] = "1"` before calling `vsqv.View()` to force 8-bit preview instead of preferring 16-bit. This may improve frame loading performance on slower machines.  
+* Set `os.environ["VSQV_FORCE_8_BIT"] = "1"` before calling `vsqv.View()` or importing vsquickview to force 8-bit preview instead of preferring 16-bit. This may improve frame loading performance on slower machines.  
