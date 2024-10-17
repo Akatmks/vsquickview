@@ -28,7 +28,7 @@ import itertools
 import os
 import numpy as np
 from pathlib import Path
-from PySide6.QtCore import QObject, QMutex, Property, QReadWriteLock, QRunnable, Signal, Slot, QThread, QThreadPool
+from PySide6.QtCore import QObject, QMutex, Property, QReadWriteLock, QRunnable, Signal, Slot, QThreadPool
 from PySide6.QtGui import QColorSpace, QGuiApplication, QImage
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickImageProvider
