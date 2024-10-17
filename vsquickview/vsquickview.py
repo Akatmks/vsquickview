@@ -115,11 +115,13 @@ for _ in range(10):
 CacheMinimumSize = 10
 CacheCleaningFrequency = 5
     
-# Loading frames to be displayed is 5
+# Loading frames to be displayed is using tryStart()
+# When ThreadPool is full, all even frame loads are 5 and all odd frame
+# loads are 4
 # Preloading frames is 2
 # Cache cleaning is runned in reserved thread
 CacheThreadPool = QThreadPool()
-CacheThreadPool.setMaxThreadCount(3)
+CacheThreadPool.setMaxThreadCount(2)
 # This lock is used when adding runnables to CacheThreadPool
 # vsqv.View() and vsqv.RemoveView() uses the write lock,
 # Backend.updateImage() and LoadImageOfNearbyIndex() uses the read lock
@@ -254,9 +256,14 @@ class Backend(QObject):
         global ImagesPending
         
         CacheThreadPoolLock.lockForRead()
-        CacheThreadPool.clear()
+        request_image = RequestImage(self.index, self.frame, True)
         ImagesPendingLock.lock()
-        CacheThreadPool.start(RequestImage(self.index, self.frame, True), priority=5)
+        if not CacheThreadPool.tryStart(request_image):
+            if self.frame % 2 == 0:
+                CacheThreadPool.clear()
+                CacheThreadPool.start(request_image, priority=5)
+            else:
+                CacheThreadPool.start(request_image, priority=4)
         CacheThreadPoolLock.unlock()
         ImagesPending = { "index": self.index, "frame": self.frame, "prev": ImagesPending }
         ImagesPendingLock.unlock()
