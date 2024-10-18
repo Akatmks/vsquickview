@@ -93,6 +93,7 @@ Image = ColourBarsCaches[0]
 ImageLock = QMutex()
 # { "index": 0, "frame": 0, "prev": None }
 ImagesPending = None
+ImagesPendingCount = 0
 ImagesPendingLock = QMutex()
 
 class ImageProvider(QQuickImageProvider):
@@ -268,18 +269,20 @@ class Backend(QObject):
     @Slot()
     def updateImage(self):
         global ImagesPending
+        global ImagesPendingCount
         
         CacheThreadPoolLock.lockForRead()
         request_image = RequestImage(self.index, self.frame, True)
         ImagesPendingLock.lock()
         if not CacheThreadPool.tryStart(request_image):
-            if self.frame % 2 == 0:
+            if ImagesPendingCount % 2 == 0:
                 CacheThreadPool.clear()
                 CacheThreadPool.start(request_image, priority=5)
             else:
                 CacheThreadPool.start(request_image, priority=4)
         CacheThreadPoolLock.unlock()
         ImagesPending = { "index": self.index, "frame": self.frame, "prev": ImagesPending }
+        ImagesPendingCount += 1
         ImagesPendingLock.unlock()
         LoadImageOfNearbyIndexThreadPool.clear()
         LoadImageOfNearbyIndexThreadPool.start(LoadImageOfNearbyIndex(self.index, self.frame))
