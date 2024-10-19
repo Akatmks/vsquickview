@@ -282,9 +282,7 @@ ApplicationWindow {
             }
 
             else if(event.key === Qt.Key_Alt || event.key === Qt.Key_AltGr) {
-                if(event.modifiers === Qt.AltModifier) {
-                    altPressed = true
-                }
+                altPressed = true
             }
 
             else if(event.key === Qt.Key_Right) {
@@ -442,7 +440,7 @@ ApplicationWindow {
             }
         }
         Keys.onReleased: (event) => {
-            if(altPressed && event.key === Qt.Key_Alt || event.key === Qt.Key_AltGr) {
+            if(altPressed && (event.key === Qt.Key_Alt || event.key === Qt.Key_AltGr)) {
                 window.showLabelText = !window.showLabelText
                 altPressed = false
             }
