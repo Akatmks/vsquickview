@@ -73,7 +73,7 @@ Show(clip: Optional[vs.VideoNode]=None) -> None
 Hide(clip: Optional[vs.VideoNode]=None) -> None
 ```
 
-After previewing, you may directly export Jupyter Notebook to Python file for VSPipe. vsquickview will be automatically [disabled](https://github.com/Akatmks/vsquickview/blob/963c12930e37a7d0ba46fbf5a7601efa38a0edfe/vsquickview/__init__.py#L35-L56) when run in VSPipe. If this detection fails to work, please [create](https://github.com/Akatmks/vsquickview/issues) an issue.  
+After previewing, you may directly export Jupyter Notebook to Python file for VSPipe. vsquickview will be automatically [disabled](https://github.com/Akatmks/vsquickview/blob/430b78658f0f082cefdcf0e711ff0ea06e4a89f0/vsquickview/__init__.py#L35-L62) when run in VSPipe. If this detection fails to work, please [create](https://github.com/Akatmks/vsquickview/issues) an issue.  
 
 ### Using vsquickview's GUI
 
