@@ -32,9 +32,13 @@ if "get_ipython" in main:
     os.environ["QT_API"] = "pyside6"
     __main__.get_ipython().run_line_magic("gui", "qt6")
 
-# I have no idea why "__main__" is not in the main module for vspipe,
-# but it seems to get the trick done in the least hazardous way.
-if "__main__" in main or "get_ipython" in main:
+# "__main__" seems to only get populated in interactive environments
+# including vanilla Python and Jupyter Notebook (undocumented).
+# "get_ipython" is a fail safe for Jupyter Notebook.
+# "__file__" will get populated when Python code is run as a script
+# (documented / intended), but for some reason it is not populated in
+# VSPipe as of R65 (undocumented / probably not intended?).
+if "__main__" in main or "get_ipython" in main or "__file__" in main:
     from .vsquickview import View, \
                              RemoveView, \
                              SetFrame, \
@@ -43,7 +47,8 @@ if "__main__" in main or "get_ipython" in main:
                              ClearPreviewGroup, \
                              PreviewGroup, \
                              Show, \
-                             Hide
+                             Hide, \
+                             app
 else:
     from .fakevsquickview import View, \
                                  RemoveView, \
@@ -53,6 +58,7 @@ else:
                                  ClearPreviewGroup, \
                                  PreviewGroup, \
                                  Show, \
-                                 Hide
+                                 Hide, \
+                                 app
 
 __version__ = "1.1.0"

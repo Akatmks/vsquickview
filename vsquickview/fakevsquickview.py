@@ -41,3 +41,8 @@ def Show(*_, **__):
     pass
 def Hide(*_, **__):
     pass
+
+class App:
+    def exec(*_, **__):
+        pass
+app = App()
