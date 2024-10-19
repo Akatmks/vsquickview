@@ -24,7 +24,17 @@
 # ---------------------------------------------------------------------
 
 import __main__
-if not __main__.__name__ == "__vapoursynth__":
+import os
+
+main = dir(__main__)
+
+if "get_ipython" in main:
+    os.environ["QT_API"] = "pyside6"
+    __main__.get_ipython().run_line_magic("gui", "qt6")
+
+# I have no idea why "__main__" is not in the main module for vspipe,
+# but it seems to get the trick done in the least hazardous way.
+if "get_ipython" in main or "__main__" in main:
     from .vsquickview import View, \
                              RemoveView, \
                              SetFrame, \

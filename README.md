@@ -22,12 +22,11 @@ python3 -m pip install vsquickview
 
 Create a new Jupyter Notebook and import vsquickview:  
 ```py
-%gui qt6
 import vsquickview as vsqv
 ```
-`%gui qt6` is a [magic command](https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-gui) to let Jupyter Notebook integrate with the Qt event loop. If you have both PyQt6 and PySide6 installed, you may add `os.environ["QT_API"] = "pyside6"` before `%gui qt6` to so that Jupyter Notebook would initialise with PySide6.  
+After this cell is executed, a fullscreen vsquickview window should open, showing an ARIB STD-B66 colour bar.  
 
-After this cell is executed, a fullscreen vsquickview window should open, showing an ARIB STD-B66 colour bar. On the OS Akatsumekusa's using, this fullscreen window would be opened in the background and won't take the focus from Jupyter Notebook. If this behaviour is different on your OS and troubles you, please [create](https://github.com/Akatmks/vsquickview/issues) an issue and we will see how we can address it.  
+On Windows as of Qt 6.7, this fullscreen window would be opened in the background and won't take the focus from Jupyter Notebook. If this behaviour is different on your OS and troubles you, please [create](https://github.com/Akatmks/vsquickview/issues) an issue and we will see how we can address it.  
 
 We will be looking at the GUI in the [next section](#using-vsquickviews-gui). Before that, let's see how we can add clips to vsquickview:  
 
@@ -74,7 +73,7 @@ Show(clip: Optional[vs.VideoNode]=None) -> None
 Hide(clip: Optional[vs.VideoNode]=None) -> None
 ```
 
-After previewing, you may directly export Jupyter Notebook to Python file for VSPipe. vsquickview will be automatically [dis](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/__init__.py#L27-L46)[abled](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/fakevsquickview.py#L26-L43) when run in VSPipe.  
+After previewing, you may directly export Jupyter Notebook to Python file for VSPipe. vsquickview will be automatically [dis](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/__init__.py#L27-L46)[abled](https://github.com/Akatmks/vsquickview/blob/08cdc9c9c84e11b75ce4711c23baacb94b353573/vsquickview/fakevsquickview.py#L26-L43) when run in VSPipe. If this detection fails to work, please [create](https://github.com/Akatmks/vsquickview/issues) an issue.  
 
 ### Using vsquickview's GUI
 
@@ -98,7 +97,7 @@ Other usages are listed below:
 * `F` or `F11`: Toggle fullscreen.  
 * `Q`: Close vsquickview window.  
 
-vsquickview will not quit when vsquickview window are closed. You can reopen the window by calling function `vsquickview.Show()`.  vsquickview will only quit when you terminate or restart Jupyter Notebook session.  
+vsquickview will not quit when vsquickview window are closed. You can reopen the window by calling function `vsquickview.Show()`. vsquickview will only quit when you terminate or restart Jupyter Notebook session.  
 
 ### Using preview group
 
