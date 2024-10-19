@@ -34,7 +34,7 @@ if "get_ipython" in main:
 
 # I have no idea why "__main__" is not in the main module for vspipe,
 # but it seems to get the trick done in the least hazardous way.
-if "get_ipython" in main or "__main__" in main:
+if "__main__" in main or "get_ipython" in main:
     from .vsquickview import View, \
                              RemoveView, \
                              SetFrame, \
