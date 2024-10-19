@@ -60,15 +60,12 @@ vsqv.View(compare16, index=1, name="Compare")
 vsqv.RemoveView(None, index=1)
 ```
 
-Here is a short list of functions and their definitions in vsquickview:  
+Here is a short list of basic functions and their definitions in vsquickview:  
 ```py
 View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_in: QColorSpace=QColorSpace(QColorSpace.SRgb), color_space: QColorSpace=QColorSpace(QColorSpace.SRgb)) -> None
 RemoveView(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None) -> None
 SetFrame(clip: Union[vs.VideoNode, int, None]=None, frame: Optional[int]=None) -> None
 SetIndex(clip: Union[vs.VideoNode, int, None]=None, index: Optional[int]=None) -> None
-SetPreviewGroup(clip: Union[vs.VideoNode, list[int], None]=None, group: Optional[list[int]]=None) -> None
-ClearPreviewGroup(clip: Optional[vs.VideoNode]=None) -> None
-PreviewGroup(clip: Optional[vs.VideoNode]=None) -> list[int]
 Show(clip: Optional[vs.VideoNode]=None) -> None
 Hide(clip: Optional[vs.VideoNode]=None) -> None
 ```
