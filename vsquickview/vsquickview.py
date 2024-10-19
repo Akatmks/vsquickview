@@ -357,7 +357,8 @@ class Backend(QObject):
     @Slot()
     def prevPreviewGroupFrame(self):
         if self.preview_group:
-            self.frame = self.preview_group[max(bisect.bisect_left(self.preview_group, self.frame - 1) - 1, 0)]
+            if self.frame > self.preview_group[0]:
+                self.frame = self.preview_group[bisect.bisect_left(self.preview_group, self.frame) - 1]
         else:
             self.prevFrame()
     @Slot()
@@ -381,7 +382,8 @@ class Backend(QObject):
     @Slot()
     def nextPreviewGroupFrame(self):
         if self.preview_group:
-            self.frame = self.preview_group[bisect.bisect_left(self.preview_group, self.frame + 1)]
+            if self.frame < self.preview_group[-1]:
+                self.frame = self.preview_group[bisect.bisect_left(self.preview_group, self.frame + 1)]
         else:
             self.nextFrame()
     @Slot(int)

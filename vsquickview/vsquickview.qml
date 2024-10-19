@@ -135,7 +135,7 @@ ApplicationWindow {
         anchors.leftMargin: 68.8
 
         text: ""
-        onTextChanged: {
+        function onTextChanged() {
             if(text) {
                 visible = true
             }
