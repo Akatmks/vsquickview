@@ -90,7 +90,7 @@ Other usages are listed below:
 * `Up` or `Down`: Go to the next or previous clip, but not cycling the clips.  
 * `G` or `` ` ``: Press `G` or `` ` `` key and type the frame number followed by `Enter` key to go to a specific frame.  
 * `Left` Key or `Right` Key: Go to the previous or the next frame.  
-* `Ctrl` and `Left` Key or `Right` Key: Jump 12 frames backwards or forwards.  
+* `Shift` and `Left` Key or `Right` Key: Jump 12 frames backwards or forwards.  
 * `F` or `F11`: Toggle fullscreen.  
 * `Q`: Close vsquickview window.  
 
@@ -105,7 +105,7 @@ Set preview group using the `vsquickview.SetPreviewGroup()` function:
 vsqv.SetPreviewGroup([1934, 6849, 13226, 21647, 25374, 26811, 28499, 29111])
 ```
 
-In the vsquickview GUI, use `Shift` key with `Left` or `Right` key to go to the previous or next frame in the set preview group.  
+In the vsquickview GUI, use `Ctrl` key with `Left` or `Right` key to go to the previous or next frame in the set preview group.  
 
 You can add frame to or remove frame from the preview group using `R` Key from GUI.  
 
