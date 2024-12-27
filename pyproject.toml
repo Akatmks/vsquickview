@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vsquickview"
-description = "VapourSynth preview script"
+description = "VapourSynth preview script for Jupyter Notebook"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
