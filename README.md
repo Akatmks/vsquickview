@@ -121,6 +121,13 @@ ClearPreviewGroup(clip: Optional[vs.VideoNode]=None) -> None
 PreviewGroup(clip: Optional[vs.VideoNode]=None) -> list[int]
 ```
 
+### Save image
+
+You can save the current frame as image by pressing key `S` in the GUI. These options are available:  
+* `os.environ["VSQV_SAVE_IMAGE_DIRECTORY"]`: The directory where the image will be saved. Default: [`QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)[0]`](https://doc.qt.io/qt-6/qstandardpaths.html#StandardLocation-enum).  
+* `os.environ["VSQV_SAVE_IMAGE_FORMAT"]`: The [format](https://doc.qt.io/qt-6/qimagewriter.html#supportedImageFormats) the image will be saved in. Default: `PNG`.  
+* `os.environ["VSQV_SAVE_IMAGE_QUALITY"]`: The [quality](https://doc.qt.io/qt-6/qimage.html#save) the image will be saved with. Default: `100`.  
+
 ### Colour management
 
 QtQML doesn't currently support colour management as of Qt 6.7. However, you may manually convert colours by passing two [`QColorSpace`](https://doc.qt.io/qt/qcolorspace.html) instances alongside the clip to `vsquickview.View()`.  

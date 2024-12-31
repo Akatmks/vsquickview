@@ -94,7 +94,10 @@ ApplicationWindow {
     property bool showLabelText: false
     property string extraLabelText: ""
     function updateLabelText() {
-        if(extraLabelText) {
+        if(backend.message != "") {
+            label.text = backend.message
+        }
+        else if(extraLabelText) {
             label.text = extraLabelText
         }
         else if(showLabelText) {
@@ -102,6 +105,13 @@ ApplicationWindow {
         }
         else {
             label.text = ""
+        }
+    }
+    Connections {
+        target: backend
+        function onNewMessage() {
+            updateLabelText()
+            backend.message = ""
         }
     }
     Connections {
@@ -447,6 +457,10 @@ ApplicationWindow {
 
             else if(event.key === Qt.Key_R) {
                 backend.toggleFrameInPreviewGroup()
+            }
+
+            else if(event.key === Qt.Key_S) {
+                backend.saveImage()
             }
 
             else {

@@ -28,10 +28,11 @@ import itertools
 import os
 import numpy as np
 from pathlib import Path
-from PySide6.QtCore import QObject, QMutex, Property, QReadWriteLock, QRunnable, Signal, Slot, QThreadPool
+from PySide6.QtCore import QObject, QMutex, Property, QReadWriteLock, QRunnable, Signal, Slot, QStandardPaths, QThreadPool
 from PySide6.QtGui import QColorSpace, QGuiApplication, QImage
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickImageProvider
+import traceback
 import typing
 from typing import Optional, Union
 import vapoursynth as vs
@@ -412,6 +413,59 @@ class Backend(QObject):
             self.preview_group.sort()
         self.previewGroupChanged.emit()
 
+    _message = ""
+    def message_(self):
+        return self._message
+    def setMessage(self, msg):
+        if self._message != msg:
+            self._message = msg
+            if self._message != "":
+                self.newMessage.emit()
+            self.messageChanged.emit()
+    messageChanged = Signal()
+    message = Property(str, message_, setMessage, notify=messageChanged)
+    newMessage = Signal()
+
+    @Slot()
+    def saveImage(self):
+        index = self.index
+        frame = self.frame
+        name = self.name
+
+        CacheThreadPoolLock.lockForWrite()
+        try:
+            if "VSQV_SAVE_IMAGE_DIRECTORY" in os.environ:
+                path = Path(os.environ["VSQV_SAVE_IMAGE_DIRECTORY"]).expanduser()
+            else:
+                if len((path := QStandardPaths.standardLocations(QStandardPaths.PicturesLocation))) >= 1:
+                    path = Path(path[0])
+                else:
+                    path = Path("~/Pictures").expanduser()
+            if "VSQV_SAVE_IMAGE_FORMAT" in os.environ:
+                format = os.environ["VSQV_SAVE_IMAGE_FORMAT"]
+            else:
+                format = "PNG"
+            if name != "":
+                path = path.joinpath(f"Index {index} ({name}) Frame {frame}.vsqv.{format.lower()}")
+            else:
+                path = path.joinpath(f"Index {index} Frame {frame}.vsqv.{format.lower()}")
+            path = path.as_posix()
+            if "VSQV_SAVE_IMAGE_QUALITY" in os.environ:
+                quality = int(os.environ["VSQV_SAVE_IMAGE_QUALITY"])
+            else:
+                quality = 100
+        
+            CacheThreadPool.waitForDone()
+
+            ImageLock.lock()
+            if Image.save(path, format, quality):
+                self.message = f"Image saved to \"{path}\""
+            else:
+                self.message = f"Failed to save image to \"{path}\""
+            ImageLock.unlock()
+        except Exception as e:
+            self.message = str(traceback.format_exception(e, value=e, tb=None)[0]).splitlines()[0]
+        CacheThreadPoolLock.unlock()
 
 class WindowControl(QObject):
     def __init__(self):
