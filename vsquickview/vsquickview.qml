@@ -69,8 +69,22 @@ ApplicationWindow {
         anchors.verticalCenterOffset: 0
 
         property real scale: 1
-        width: sourceSize.width * scale / Screen.devicePixelRatio
-        height: sourceSize.height * scale / Screen.devicePixelRatio
+        width: {
+            if(backend.devicePixelRatioOverride > 0.0) {
+                sourceSize.width * scale / backend.devicePixelRatioOverride
+            }
+            else {
+                sourceSize.width * scale / Screen.devicePixelRatio
+            }
+        }
+        height: {
+            if(backend.devicePixelRatioOverride > 0.0) {
+                sourceSize.height * scale / backend.devicePixelRatioOverride
+            }
+            else {
+                sourceSize.height * scale / Screen.devicePixelRatio
+            }
+        }
         source: "image://backend/" + image_number
         asynchronous: false
         smooth: false

@@ -301,6 +301,16 @@ class Backend(QObject):
     preview_group = []
     previewGroupChanged = Signal()
 
+    _devicePixelRatioOverride = 0.0
+    def devicePixelRatioOverride_(self):
+        return self._devicePixelRatioOverride
+    def setDevicePixelRatioOverride(self, device_pixel_ratio_override):
+        if self._devicePixelRatioOverride != device_pixel_ratio_override:
+            self._devicePixelRatioOverride = device_pixel_ratio_override
+            self.devicePixelRatioOverrideChanged.emit()
+    devicePixelRatioOverrideChanged = Signal()
+    devicePixelRatioOverride = Property(float, devicePixelRatioOverride_, setDevicePixelRatioOverride, notify=devicePixelRatioOverrideChanged)
+
     @Slot()
     def updateName(self):
         if Clips[self.index] and 0 <= self.frame < Clips[self.index].num_frames:
@@ -416,6 +426,7 @@ os.environ["QT_QUICK_CONTROLS_MATERIAL_THEME"] = "Dark"
 
 # Options
 # os.environ["VSQV_FORCE_8_BIT"]
+# os.environ["VSQV_SCREEN_DEVICE_PIXEL_RATIO"]
 
 if not (app := QGuiApplication.instance()):
     app = QGuiApplication([])
@@ -424,6 +435,15 @@ engine = QQmlApplicationEngine()
 image_provider = ImageProvider()
 engine.addImageProvider("backend", ImageProvider())
 backend = Backend()
+if "VSQV_SCREEN_DEVICE_PIXEL_RATIO" in os.environ:
+    try:
+        backend._devicePixelRatioOverride = float(os.environ["VSQV_SCREEN_DEVICE_PIXEL_RATIO"])
+    except:
+        raise ValueError("Environment variable \"VSQV_SCREEN_DEVICE_PIXEL_RATIO\" was set but isn't a number.")
+    if np.isnan(backend._devicePixelRatioOverride):
+        raise ValueError("Environment variable \"VSQV_SCREEN_DEVICE_PIXEL_RATIO\" was set but is not a number.")
+    if backend._devicePixelRatioOverride < 0.0:
+        raise ValueError("Environment variable \"VSQV_SCREEN_DEVICE_PIXEL_RATIO\" is less than 0.")
 engine.rootContext().setContextProperty("backend", backend)
 window_control = WindowControl()
 engine.rootContext().setContextProperty("windowcontrol", window_control)
@@ -466,6 +486,17 @@ def View(clip: vs.VideoNode, index: int, name: Optional[str]=None, color_space_i
             clip = clip.resize.Spline36(format=vs.GRAY8, dither_type="none")
         else:
             raise TypeError("Unsupported clip.format.color_family. vsquickview only supports vs.RGB, vs.YUV or vs.GRAY. To add support for other formats, raise an issue or make a pull request at https://github.com/Akatmks/vsquickview .")
+
+    if "VSQV_SCREEN_DEVICE_PIXEL_RATIO" in os.environ:
+        try:
+            device_pixel_ratio_override = float(os.environ["VSQV_SCREEN_DEVICE_PIXEL_RATIO"])
+        except:
+            raise ValueError("Environment variable \"VSQV_SCREEN_DEVICE_PIXEL_RATIO\" was set but isn't a number.")
+        if np.isnan(device_pixel_ratio_override):
+            raise ValueError("Environment variable \"VSQV_SCREEN_DEVICE_PIXEL_RATIO\" was set but is not a number.")
+        if device_pixel_ratio_override < 0.0:
+            raise ValueError("Environment variable \"VSQV_SCREEN_DEVICE_PIXEL_RATIO\" is less than 0.")
+        backend.devicePixelRatioOverride = device_pixel_ratio_override
 
     Clips[index] = clip
     ClipColorSpaces[index] = (color_space_in, color_space)
