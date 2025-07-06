@@ -24,6 +24,7 @@
 # ---------------------------------------------------------------------
 
 import bisect
+import ctypes
 import itertools
 import os
 import numpy as np
@@ -51,28 +52,32 @@ def loadImage(clip, clip_color_space, frame):
     if clip.format.color_family == vs.RGB:
         if clip.format.bits_per_sample == 16:
             frame = clip.get_frame(frame)
-            r = np.array(frame[0], dtype=np.uint16).reshape((clip.height, clip.width))
-            g = np.array(frame[1], dtype=np.uint16).reshape((clip.height, clip.width))
-            b = np.array(frame[2], dtype=np.uint16).reshape((clip.height, clip.width))
+            r = np.array(frame[0], dtype=np.uint16)
+            g = np.array(frame[1], dtype=np.uint16)
+            b = np.array(frame[2], dtype=np.uint16)
             a = np.array([np.iinfo(np.uint16).max], dtype=np.uint16)
-            a = np.broadcast_to(a, (clip.height * clip.width, 1))
-            image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)), a)).reshape((clip.height, clip.width, 4))
-            qimage = QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGBX64)
+            a = np.broadcast_to(a, (frame.height * frame.width, 1))
+            image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)), a)).reshape((frame.height, frame.width, 4))
+            qimage = QImage(image.data, frame.width, frame.height, image.strides[0], QImage.Format.Format_RGBX64)
 
         elif clip.format.bits_per_sample == 8:
             frame = clip.get_frame(frame)
-            r = np.array(frame[0], dtype=np.uint8).reshape((clip.height, clip.width))
-            g = np.array(frame[1], dtype=np.uint8).reshape((clip.height, clip.width))
-            b = np.array(frame[2], dtype=np.uint8).reshape((clip.height, clip.width))
-            image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)))).reshape((clip.height, clip.width, 3))
-            qimage = QImage(image.data, clip.width, clip.height, QImage.Format.Format_RGB888)
+            r = np.array(frame[0], dtype=np.uint8)
+            g = np.array(frame[1], dtype=np.uint8)
+            b = np.array(frame[2], dtype=np.uint8)
+            image = np.hstack((r.reshape((-1, 1)), g.reshape((-1, 1)), b.reshape((-1, 1)))).reshape((frame.height, frame.width, 3))
+            qimage = QImage(image.data, frame.width, frame.height, image.strides[0], QImage.Format.Format_RGB888)
 
     elif clip.format.color_family == vs.GRAY:
         if clip.format.bits_per_sample == 16:
-            qimage = QImage(clip.get_frame(frame)[0], clip.width, clip.height, QImage.Format.Format_Grayscale16)
+            frame = clip.get_frame(frame)
+            ptr = ctypes.cast(frame.get_read_ptr(0), ctypes.POINTER(ctypes.c_uint16 * (frame.height * frame.get_stride(0))))
+            qimage = QImage(ptr.contents, frame.width, frame.height, frame.get_stride(0), QImage.Format.Format_Grayscale16)
 
         elif clip.format.bits_per_sample == 8:
-            qimage = QImage(clip.get_frame(frame)[0], clip.width, clip.height, QImage.Format.Format_Grayscale8)
+            frame = clip.get_frame(frame)
+            ptr = ctypes.cast(frame.get_read_ptr(0), ctypes.POINTER(ctypes.c_uint8 * (frame.height * frame.get_stride(0))))
+            qimage = QImage(ptr.contents, frame.width, frame.height, frame.get_stride(0), QImage.Format.Format_Grayscale8)
 
     qimage.setColorSpace(clip_color_space[0])
     if clip_color_space[1] != clip_color_space[0]:

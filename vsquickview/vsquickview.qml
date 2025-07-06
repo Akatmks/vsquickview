@@ -219,8 +219,8 @@ ApplicationWindow {
 
                 if(Math.abs(Math.abs((window.width - image.width) / 2) - Math.abs(image.anchors.horizontalCenterOffset)) < 7 &&
                    Math.abs(Math.abs((window.height - image.height) / 2) - Math.abs(image.anchors.verticalCenterOffset)) < 7) {
-                    image.anchors.horizontalCenterOffset = image.anchors.horizontalCenterOffset >= 0 ? -(window.width - image.width) / 2 : (window.width - image.width) / 2
-                    image.anchors.verticalCenterOffset = image.anchors.verticalCenterOffset >= 0 ? -(window.height - image.height) / 2 : (window.height - image.height) / 2
+                    image.anchors.horizontalCenterOffset = image.anchors.horizontalCenterOffset >= 0 ? (window.width - image.width) / 2 : -(window.width - image.width) / 2
+                    image.anchors.verticalCenterOffset = image.anchors.verticalCenterOffset >= 0 ? (window.height - image.height) / 2 : -(window.height - image.height) / 2
                 }
             }
         }
