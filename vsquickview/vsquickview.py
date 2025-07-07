@@ -72,12 +72,12 @@ def loadImage(clip, clip_color_space, frame):
         if clip.format.bits_per_sample == 16:
             frame = clip.get_frame(frame)
             ptr = ctypes.cast(frame.get_read_ptr(0), ctypes.POINTER(ctypes.c_uint16 * (frame.height * frame.get_stride(0))))
-            qimage = QImage(ptr.contents, frame.width, frame.height, frame.get_stride(0), QImage.Format.Format_Grayscale16)
+            qimage = QImage(ptr.contents, frame.width, frame.height, frame.get_stride(0), QImage.Format.Format_Grayscale16).copy()
 
         elif clip.format.bits_per_sample == 8:
             frame = clip.get_frame(frame)
             ptr = ctypes.cast(frame.get_read_ptr(0), ctypes.POINTER(ctypes.c_uint8 * (frame.height * frame.get_stride(0))))
-            qimage = QImage(ptr.contents, frame.width, frame.height, frame.get_stride(0), QImage.Format.Format_Grayscale8)
+            qimage = QImage(ptr.contents, frame.width, frame.height, frame.get_stride(0), QImage.Format.Format_Grayscale8).copy()
 
     qimage.setColorSpace(clip_color_space[0])
     if clip_color_space[1] != clip_color_space[0]:
