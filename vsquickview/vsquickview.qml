@@ -310,10 +310,10 @@ ApplicationWindow {
             }
 
             else if(event.key === Qt.Key_Right) {
-                if(event.modifiers === Qt.ShiftModifier) {
+                if(event.modifiers & Qt.ShiftModifier) {
                     backend.nextTwelveFrames()
                 }
-                else if(event.modifiers === Qt.ControlModifier) {
+                else if(event.modifiers & Qt.ControlModifier) {
                     backend.nextPreviewGroupFrame()
                 }
                 else {
@@ -321,10 +321,10 @@ ApplicationWindow {
                 }
             }
             else if(event.key === Qt.Key_Left) {
-                if(event.modifiers === Qt.ShiftModifier) {
+                if(event.modifiers & Qt.ShiftModifier) {
                     backend.prevTwelveFrames()
                 }
-                else if(event.modifiers === Qt.ControlModifier) {
+                else if(event.modifiers & Qt.ControlModifier) {
                     backend.prevPreviewGroupFrame()
                 }
                 else {
@@ -419,7 +419,7 @@ ApplicationWindow {
             else if(gotoFrame !== "NaN" && event.key === Qt.Key_Escape) {
                 gotoFrame = "NaN"
             }
-            else if(gotoFrame !== "NaN" && event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            else if(gotoFrame !== "NaN" && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) {
                 backend.switchFrame(+gotoFrame)
                 gotoFrame = "NaN"
             }
