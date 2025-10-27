@@ -450,10 +450,10 @@ class Backend(QObject):
                 format = os.environ["VSQV_SAVE_IMAGE_FORMAT"]
             else:
                 format = "PNG"
-            if name != "":
-                path = path.joinpath(f"Index {index} ({name}) Frame {frame}.vsqv.{format.lower()}")
+            if name is not None and name != "":
+                path = path.joinpath(f"{index}. {name} {frame}.{format.lower()}")
             else:
-                path = path.joinpath(f"Index {index} Frame {frame}.vsqv.{format.lower()}")
+                path = path.joinpath(f"{index} {frame}.{format.lower()}")
             path = path.as_posix()
             if "VSQV_SAVE_IMAGE_QUALITY" in os.environ:
                 quality = int(os.environ["VSQV_SAVE_IMAGE_QUALITY"])
