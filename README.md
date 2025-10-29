@@ -89,6 +89,7 @@ Other usages are listed below:
 * `0`, `1`, `2` … `9`: Switch to the clip at the specific index, similar to the control of vspreview.  
 * `Up` or `Down`: Go to the next or previous clip, but not cycling the clips.  
 * `G` or `` ` ``: Press `G` or `` ` `` key and type the frame number followed by `Enter` key to go to a specific frame.  
+* `Ctrl` and `C`: Copy current frame number to clipboard. `Ctrl` and `V`: Read from clipboard, and go to the frame if the clipboard content is an integer.  
 * `Left` Key or `Right` Key: Go to the previous or the next frame.  
 * `Shift` and `Left` Key or `Right` Key: Jump 12 frames backwards or forwards.  
 * `F` or `F11`: Toggle fullscreen.  

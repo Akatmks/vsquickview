@@ -30,7 +30,7 @@ import os
 import numpy as np
 from pathlib import Path
 from PySide6.QtCore import QObject, QMutex, Property, QReadWriteLock, QRunnable, Signal, Slot, QStandardPaths, QThreadPool
-from PySide6.QtGui import QColorSpace, QGuiApplication, QImage
+from PySide6.QtGui import QClipboard, QColorSpace, QGuiApplication, QImage
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6.QtQuick import QQuickImageProvider
 import traceback
@@ -405,6 +405,15 @@ class Backend(QObject):
     @Slot(int)
     def switchFrame(self, frame):
         self.frame = frame
+    @Slot()
+    def clipboardToFrame(self):
+        try:
+            self.frame = int(app.clipboard().text().strip())
+        except ValueError:
+            pass
+    @Slot()
+    def frameToClipboard(self):
+        app.clipboard().setText(str(self.frame))
     
     @Slot(result=bool)
     def frameInPreviewGroup(self):

@@ -455,6 +455,15 @@ ApplicationWindow {
                 backend.switchIndex(9)
             }
 
+            else if(event.key === Qt.Key_Copy ||
+                    (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier)) {
+                backend.frameToClipboard()
+            }
+            else if(event.key === Qt.Key_Paste ||
+                    (event.key === Qt.Key_V && event.modifiers & Qt.ControlModifier)) {
+                backend.clipboardToFrame()
+            }
+
             else if(event.key === Qt.Key_R) {
                 backend.toggleFrameInPreviewGroup()
             }
